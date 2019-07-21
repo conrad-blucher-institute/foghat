@@ -51,10 +51,15 @@ download_href () {
     # renaming will cause wget to download _everything_ again when
     # it is re-run
     cd $ARCHIVE_DIR/$date
+    echo "?In $ARCHIVE_DIR/$date:" >>$LOG_FILE
     for i in *
     do
         j=`echo $i | sed "s/\.grib2$/.${date}.grib2/;"`
-        ln $i $j
+        if [ ! -e $j ]
+        then
+            echo "  • Link $i → $j" >>$LOG_FILE
+            ln $i $j
+        fi
     done
     cd - >/dev/null
 
