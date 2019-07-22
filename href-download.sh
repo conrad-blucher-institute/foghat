@@ -54,7 +54,7 @@ download_href () {
     echo "?In $ARCHIVE_DIR/$date:" >>$LOG_FILE
     for i in *
     do
-        j=`echo $i | sed "s/\.grib2$/.${date}.grib2/;"`
+        j=`echo $i | sed "s/\f[0-3][0-9].grib2$/.${date}.grib2/;"`
         if [ ! -e $j ]
         then
             echo "  • Link $i → $j" >>$LOG_FILE
