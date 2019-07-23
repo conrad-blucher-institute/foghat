@@ -14,10 +14,10 @@ COOKIES_FILE='.cookies'
 
 mkdir -p $LOG_DIR $ARCHIVE_DIR
 
-local start=`date '+%s'`
+START=`date '+%s'`
 echo "?downloading latest data from $URL" >>$LOG_FILE
 /usr/bin/wget -nv --no-parent -r --limit-rate=5m --wait=5 --timestamping --append-output=$LOG_FILE -nd --directory-prefix=$ARCHIVE_DIR  $URL
-local end=`date '+%s'`
-local delta=$((end - start))
-echo "?downloaded data files in $delta seconds" >>$LOG_FILE
+END=`date '+%s'`
+DELTA=$((END - START))
+echo "?downloaded data files in $DELTA seconds" >>$LOG_FILE
 
