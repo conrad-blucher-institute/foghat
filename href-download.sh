@@ -47,6 +47,13 @@ download_href () {
     local delta=$((end - start))
     echo "?downloaded $count data files (from $url_file) for $date in $delta seconds" >>$LOG_FILE
 
+    if [ ! -d "$ARCHIVE_DIR/$date" ]
+    then
+        echo "?Looks like there aren't any files for $date yet, skipping" >>$LOG_FILE
+        rm $url_file
+        return
+    fi
+
     # Add date to filename using hard links here b/c straightforward
     # renaming will cause wget to download _everything_ again when
     # it is re-run
@@ -54,7 +61,7 @@ download_href () {
     echo "?In $ARCHIVE_DIR/$date:" >>$LOG_FILE
     for i in *
     do
-        j=`echo $i | sed "s/\.f[0-3][0-9]\.grib2$/.${date}.grib2/;"`
+        j=`echo $i | sed "s/\.\(f[0-3][0-9]\)\.grib2$/.\1.${date}.grib2/;"`
         if [ ! -e $j ]
         then
             echo "  • Link $i → $j" >>$LOG_FILE
