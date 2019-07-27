@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 # Download href visibility archive data from Matthew Pyle's temporary store he setup for Waylon
-# Looks like he posts two months of data (~8GB) at a time
+#
+# Looks like he posts two months of data (~8GB) at a time.  Waylon
+# emails me whenever a new data set is made available
+
 URL='ftp://ftp.emc.ncep.noaa.gov/mmb/WRFtesting/mpyle/vis_tmp/'
 
 if [[ -z "$FOGHAT_BASE" || -z "$FOGHAT_LOG_DIR" || -z "$FOGHAT_ARCHIVE_DIR" ]]

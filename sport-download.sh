@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
 # Download latest sea surface temperature (SST) data from NASA's SPoRT model running 30-day archive
+#
+# https://weather.msfc.nasa.gov/sport/sst/
+
 URL='https://geo.nsstc.nasa.gov/SPoRT/sst/northHemisphere/grib2/'
 
 if [[ -z "$FOGHAT_BASE" || -z "$FOGHAT_LOG_DIR" || -z "$FOGHAT_ARCHIVE_DIR" ]]

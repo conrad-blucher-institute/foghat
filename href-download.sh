@@ -3,6 +3,8 @@
 # Download HREF probability output (all probabilities; including
 # visibility) on a daily basis from NOMADS (NOAA Operational Model
 # Archive and Distribution System)
+#
+# https://nomads.ncep.noaa.gov/txt_descriptions/HREF_doc.shtml
 
 if [[ -z "$FOGHAT_BASE" || -z "$FOGHAT_LOG_DIR" || -z "$FOGHAT_ARCHIVE_DIR" ]]
 then
