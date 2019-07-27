@@ -47,7 +47,7 @@ download_href () {
     local end=`date '+%s'`
     local delta=$((end - start))
     printf -v mmss '%d:%02d' $((delta/60)) $((delta % 60))
-    echo "?downloaded $count data files (from $url_file) for $date in $delta seconds ($mmss)" >>$LOG_FILE
+    echo "?_Attempted to_ download $count data files (from $url_file) for $date in $delta seconds ($mmss)" >>$LOG_FILE
 
     # Clean up after yourself
     rm $url_file
