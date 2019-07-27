@@ -3,6 +3,21 @@ Fog Prediction System Notes
 
 Download data that we _might_ use for [development of] operational Fog prediction system.
 
+Setup
+-----
+
+Copy the sample environment variable file in `etc/` and modify as necessary for the specific host you're running these scripts on:
+
+```
+cp etc/sample-environment.sh  etc/foghat_config.sh
+vi etc/foghat_config.sh
+```
+
+Be sure to source the environment variable file before running the scripts!  E.g., `. etc/foghat_config.sh`
+
+Since all the environment variables are prefixed with `FOGHAT_`, it should be safe to add that source command to your `~/.bashrc` to automatically do this when you login.
+
+
 HREF [Visibility] Archive
 -------------------------
 

@@ -4,20 +4,21 @@
 # visibility) on a daily basis from NOMADS (NOAA Operational Model
 # Archive and Distribution System)
 
-NOMADS_BASE=$HOME/nomads-href
-LOG_DIR=$NOMADS_BASE/logs
-ARCHIVE_DIR=$NOMADS_BASE/archive
+if [[ -z "$FOGHAT_BASE" || -z "$FOGHAT_LOG_DIR" || -z "$FOGHAT_ARCHIVE_DIR" ]]
+then
+    echo "?FOGHAT Environment variables not defined, see etc/sample-environment.sh" 1>&2
+    exit
+fi
 
-# wget options
-COOKIES_FILE='.cookies'
+ARCHIVE_DIR=$FOGHAT_ARCHIVE_DIR/nomads-href
 
 # The HREF archive has yesterday and today's files available, so try
 # to download all of the ones we want w/in that range
 TODAY=`date -u '+%Y%m%d'`
 YESTERDAY=`date -u '+%Y%m%d' -d 'yesterday'`
-LOG_FILE="$LOG_DIR/href-$TODAY.log"
+LOG_FILE="$FOGHAT_LOG_DIR/href-$TODAY.log"
 
-mkdir -p $LOG_DIR $ARCHIVE_DIR
+mkdir -p $FOGHAT_LOG_DIR  $ARCHIVE_DIR
 
 # Download HREF files for a given date (yyyymmdd)
 download_href () {
@@ -42,10 +43,11 @@ download_href () {
     # Monitor and log time of all downloads
     local start=`date '+%s'`
     echo "?downloading URLs for $date contained in $url_file" >>$LOG_FILE
-    /usr/bin/wget -nv --no-parent --save-cookies $COOKIES_FILE --limit-rate=5m --wait=10 --timestamping --append-output=$LOG_FILE --directory-prefix=$ARCHIVE_DIR/$date --input-file=$url_file
+    /usr/bin/wget -nv --no-parent --load-cookies $FOGHAT_COOKIES --save-cookies $FOGHAT_COOKIES --limit-rate=5m --wait=5 --timestamping --append-output=$LOG_FILE --directory-prefix=$ARCHIVE_DIR/$date --input-file=$url_file
     local end=`date '+%s'`
     local delta=$((end - start))
-    echo "?downloaded $count data files (from $url_file) for $date in $delta seconds" >>$LOG_FILE
+    printf -v mmss '%d:%02d' $((delta/60)) $((delta % 60))
+    echo "?downloaded $count data files (from $url_file) for $date in $delta seconds ($mmss)" >>$LOG_FILE
 
     # Clean up after yourself
     rm $url_file

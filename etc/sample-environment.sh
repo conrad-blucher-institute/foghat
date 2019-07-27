@@ -1,0 +1,5 @@
+
+export FOGHAT_BASE=$HOME/fog-data
+export FOGHAT_LOG_DIR=$FOGHAT_BASE/logs
+export FOGHAT_ARCHIVE_DIR=$FOGHAT_BASE/archive
+export FOGHAT_COOKIES=$FOGHAT_BASE/.cookies
