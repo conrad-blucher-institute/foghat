@@ -20,16 +20,16 @@ cleanup_href_directory() {
     pushd $PWD >/dev/null
     cd $date
     local count=`ls -1 href.t[01][0268]z.conus.prob.f[0123][0-9].$date.grib2 | wc -l`
-    popd >/dev/null
-
     if [ $count != $DATED_FILES_COUNT ]
     then
         echo "?Found $count dated files (...$date.grib2), but expected $DATED_FILES_COUNT.  Skipping directory $date "
+        popd >/dev/null
         return
     fi
 
     # Remove un-dated version of filenames (_should_ be a hard link)
     find ./ -name 'href.t[01][0268]z.conus.prob.f[0123][0-9].grib2' | xargs -r -n1 unlink
+    popd >/dev/null
 }
 
 
