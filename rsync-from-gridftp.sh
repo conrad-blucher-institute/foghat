@@ -21,5 +21,5 @@ LOG_FILE="$FOGHAT_LOG_DIR/rsync-$subdir-$TODAY.log"
 cd $FOGHAT_ARCHIVE_DIR
 cd $subdir
 # Assumes you have public key SSH setup and key loaded
-rsync -aHvzhe ssh --log-file=$LOG_FILE gridftp:/work/TANN/fog-data/archive/$subdir .
+rsync -aHvzhe ssh --log-file=$LOG_FILE gridftp:/work/TANN/fog-data/archive/$subdir/ .
 
