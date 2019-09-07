@@ -1,0 +1,7 @@
+# Download any NOMADS-NOAA HREF updates every hour b/c I don't know exactly when model runs finish
+0 * * * *  . git/foghat/etc/foghat_config.sh  &&  ~/git/foghat/href-download.sh
+
+# Download sport SST archive every 3-4 days.
+# Infrequent b/c no last modified header from server so it downloads _everything_ again
+0 0 * * 3,7  . git/foghat/etc/foghat_config.sh  &&  ~/git/foghat/sport-download.sh
+
