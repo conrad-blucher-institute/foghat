@@ -15,6 +15,13 @@ LOG_FILE="$FOGHAT_LOG_DIR/ghrsst-$TODAY.log"
 
 mkdir -p $FOGHAT_LOG_DIR  $ARCHIVE_DIR
 
+# Convert from julian/ordinal day to YYYYMMDD b/c we need for the explicit filename URL to download via OPeNDAP server :\
+#
+# Code from https://superuser.com/a/232106/412259
+jul2ymd () {
+    date -d "$1-01-01 +$2 days -1 day" "+%Y%m%d";
+}
+
 # Print usage and die
 usage () {
     local zero=`basename $0`
@@ -57,10 +64,14 @@ y=$year1
 d=$doy1
 url_file=`mktemp --suffix=.${TODAY}-ghrsst_urls`
 # Loop conditionals in arithmetic context
+#
+# XXX  There will be errors/failure w/ julian day 366 for non-leap years, but should otherwise work
 while (( y < year2 )) || (( y == year2 && d <= doy2 ))
 do
+    ymd=`jul2ymd "$y" "$d"`
     printf -v day '%03d' $d
-    echo "ftp://ftp.nodc.noaa.gov/pub/data.nodc/ghrsst/GDS2/L4/GLOB/JPL/MUR/v4.1/$y/$day/*.nc" >>$url_file
+    # Use OPeNDAP server b/c regular HTTP/FTP _don't_ have a complete copy of the data archive (for some reason)
+    echo "https://podaac-opendap.jpl.nasa.gov/opendap/allData/ghrsst/data/GDS2/L4/GLOB/JPL/MUR/v4.1/$y/$day/${ymd}090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc" >>$url_file
     d=$((d + 1))
     # Handle day overflow.  366 b/c leap years, wget will fail on non-leap years
     if (( d > 366 ))
@@ -75,8 +86,7 @@ done
 #       I'll have to change up the loop/downloading to do that :\
 
 # Download the files
-echo "?Attempting to download $count files (days) w/ URLs contained in $url_file" >>$LOG_FILE
-/usr/bin/wget -nv --no-parent --load-cookies $FOGHAT_COOKIES --save-cookies $FOGHAT_COOKIES --limit-rate=10m --wait=5 --timestamping -r -l 1 --append-output=$LOG_FILE --directory-prefix=$ARCHIVE_DIR -nd --input-file=$url_file
+/usr/bin/wget -nv --load-cookies $FOGHAT_COOKIES --save-cookies $FOGHAT_COOKIES --limit-rate=10m --wait=5 --timestamping --append-output=$LOG_FILE --directory-prefix=$ARCHIVE_DIR --input-file=$url_file
 
 # Clean up temp file
 rm $url_file
