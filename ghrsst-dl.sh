@@ -11,7 +11,6 @@ ARCHIVE_DIR=$FOGHAT_ARCHIVE_DIR/ghrsst-l4
 # The HREF archive has yesterday and today's files available, so try
 # to download all of the ones we want w/in that range
 TODAY=`date -u '+%Y%m%d'`
-YESTERDAY=`date -u '+%Y%m%d' -d 'yesterday'`
 LOG_FILE="$FOGHAT_LOG_DIR/ghrsst-$TODAY.log"
 
 mkdir -p $FOGHAT_LOG_DIR  $ARCHIVE_DIR
@@ -35,7 +34,7 @@ EndOfUsage
 date1=`date -d "$1" '+%Y %j'`
 date2=`date -d "$2" '+%Y %j'`
 # If empty, assume error when processing
-[[ -z "$date1" || -z "$date2" ]] && exit
+[[ -z "$date1" || -z "$date2" ]] && usage
 
 read year1 doy1 <<<$date1
 read year2 doy2 <<<$date2
