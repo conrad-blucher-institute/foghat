@@ -56,7 +56,7 @@ doy2=$((10#$doy2))
 [[ $year1 == $year2 && $doy1 > $doy2 ]] && echo  "?ensure starting date ($year1$doy1) is before end date ($year2$doy2)" 1>&2 && usage
 
 now=`date`
-echo "?downloading GHRSST Level 4 files from $1 ($year1$doy1) to $2 ($year2$doy2) on $now"  >>$LOG_FILE
+echo "?downloading GHRSST Level 4 files from $1 ($year1,$doy1) to $2 ($year2,$doy2) on $now"  >>$LOG_FILE
 
 # Generate file w/ URL globs (*.nc) for all the days we're interested in
 count=0
