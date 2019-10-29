@@ -19,4 +19,3 @@ WORKDIR /app
 RUN cp /usr/local/bin/ts . && \
     cp /usr/local/share/man/man1/ts.1 .
 
-# TODO  Get executable and man page into host filesystem
