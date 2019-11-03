@@ -71,7 +71,7 @@ do
     ymd=`jul2ymd "$y" "$d"`
     printf -v day '%03d' $d
     # Use OPeNDAP server b/c regular HTTP/FTP _don't_ have a complete copy of the data archive (for some reason)
-    echo "https://podaac-opendap.jpl.nasa.gov/opendap/allData/ghrsst/data/GDS2/L4/GLOB/JPL/MUR/v4.1/$y/$day/${ymd}090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc" >>$url_file
+    echo "https://podaac-opendap.jpl.nasa.gov/opendap/hyrax/allData/ghrsst/data/GDS2/L4/GLOB/JPL/MUR/v4.1/$y/$day/${ymd}090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc" >>$url_file
     d=$((d + 1))
     # Handle day overflow.  366 b/c leap years, wget will fail on non-leap years
     if (( d > 366 ))
