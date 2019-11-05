@@ -30,7 +30,9 @@ LOG_FILE="$FOGHAT_LOG_DIR/order_$ORDER_ID-$TODAY.log"
 
 mkdir -p $FOGHAT_LOG_DIR $ARCHIVE_DIR  $TMP_DIR
 
-echo /usr/bin/wget -nv --no-parent -r --timestamping --append-output=$LOG_FILE -nd --directory-prefix=$DOWNLOAD_TARGET  $URL
+# See https://www.ncdc.noaa.gov/has/has.orderguide for suggestions
+# TODO  Reject 'index.html?C=*' variants and robots.txt files
+/usr/bin/wget -erobots=off -nv --no-parent -r --timestamping --append-output=$LOG_FILE -nd --directory-prefix=$DOWNLOAD_TARGET  $URL
 
 # TODO  Strip file list from index.html  [assuming it was downloaded] and save as file_list.txt
 # TODO  Move files to correct directory (somewhere under $ARCHIVE_DIR)

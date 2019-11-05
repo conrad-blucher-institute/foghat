@@ -15,6 +15,7 @@ import sys
 import time
 import platform
 import subprocess
+from subprocess import CalledProcessError, SubprocessError
 
 from imapclient import IMAPClient
 from envparse import Env
@@ -52,6 +53,8 @@ logger.setLevel(logging.DEBUG)  # XXX  REMOVE
       inherits any local environment settings when the job is queued.
       So we don't need to load the foghat environment variables or the
       python virtual environment--that's already done.
+
+  3.  Can't use subprocess.run() b/c Python 3.4
 """
 
 def main():
@@ -99,8 +102,7 @@ def main():
                 logger.debug(urls)
                 continue
             uid2order[uid]['url'] = urls[0]
-
-    print(uid2order)  # XXX  REMOVE
+    #print(uid2order)  # XXX  REMOVE
 
     # TODO Check local store of queued jobs and filter pending/to be queued
     queue_orders = uid2order
@@ -110,15 +112,13 @@ def main():
         order_id = queue_orders[uid]['order_id']
         # [TaskSpooler] script.py uid  order_id  url
         cmd = ['ts/ts','./nam-archive-dl.sh',str(uid),order_id,queue_orders[uid]['url']]
-        #ts_proc = subprocess.run(['ts/ts','./nam-archive-dl.sh',str(uid),queue_orders[uid]['order_id'],queue_orders[uid]['url']], capture_output=True)
-        ts_proc = subprocess.run(cmd,capture_output=True)
-        if ts_proc.returncode == 0:
-            jobid=ts_proc.stdout.decode().rstrip()
-            print('Enqueued download of order ID {} as Task Spooler job #{}'.format(order_id,jobid))
-            # TODO  Add queue_orders[uid] to local store orders
-        else:
-            print('Error occurred when trying to run subprocess {}'.format(' '.join(cmd)))
-            print(ts_proc)
+        try:
+            # Note 3
+            jobid = subprocess.check_output(cmd).decode().rstrip()
+        except (CalledProcessError, SubprocessError) as err:
+            logger.error('Error [return] code {} returned when trying to run subprocess {}'.format(err.returncode,' '.join(cmd)))
+            logger.error(err.output)
+        logger.info('Enqueued download of order ID {} as Task Spooler job #{}'.format(order_id,jobid))
 
     # TODO Write out updated queued jobs store
 
