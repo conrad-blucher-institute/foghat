@@ -101,4 +101,4 @@ popd >/dev/null
 rmdir $DOWNLOAD_TARGET
 
 # Move AIRS order email to "processed" folder (i.e., state change)
-./ncei_email.py move $EMAIL_ID INBOX Processed >>$LOG_FILE
+./ncei_email.py move $EMAIL_ID Queued Processed >>$LOG_FILE

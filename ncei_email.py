@@ -66,6 +66,10 @@ def check(server):
     """Check inbox for new emails from NOAA [AIRS Orders] and queue them for processing"""
     uid2order = {}                      # email message id → AIRS order details
 
+    exe = os.path.basename(sys.argv[0])
+    parser = argparse.ArgumentParser(prog='{} check'.format(exe),description='Check inbox for new emails from NOAA [AIRS Orders] and queue for processing')
+    parser.add_argument('--dry-run',action='store_true',help="Don't actually begin processing, just say what would be done")
+    args = parser.parse_args(sys.argv[2:])
     select_info = server.select_folder('INBOX')
     messages = server.search(['FROM','noreply@noaa.gov'])
     logger.info('{} messages in INBOX, {} from NOAA'.format(select_info[b'EXISTS'], len(messages)))
@@ -118,12 +122,23 @@ def check(server):
         # [TaskSpooler] script.py uid  order_id  url
         cmd = ['ts/ts','./nam-archive-dl.sh',str(uid),order_id,queue_orders[uid]['url']]
         try:
-            # Note 3
-            jobid = subprocess.check_output(cmd).decode().rstrip()
+            if args.dry_run:
+                logger.info('Would run command « {} »'.format(' '.join(cmd)))
+                jobid = -1
+            else:
+                # Note 3
+                jobid = subprocess.check_output(cmd).decode().rstrip()
+                pass
         except (CalledProcessError, SubprocessError) as err:
             logger.error('Error [return] code {} returned when trying to run subprocess {}'.format(err.returncode,' '.join(cmd)))
             logger.error(err.output)
         logger.info('Enqueued download of order ID {} as Task Spooler job #{}'.format(order_id,jobid))
+
+    # Move queued email jobs to different folder (state change)
+    if not args.dry_run:
+        server.move(messages=queue_orders.keys(), folder='Queued')
+    uids_str = ','.join([ str(k) for k in queue_orders.keys() ])
+    logger.info('Moved email(s) w/ UID(s) [{}] to Queued folder'.format(uids_str))
 
     # TODO Write out updated queued jobs store
 
@@ -132,7 +147,7 @@ def move(server):
     parser.add_argument('uid', type=int, help='E-mail UID')
     parser.add_argument('source', type=str, help='Current folder name containing email')
     parser.add_argument('destination', type=str, help='Destination folder name (or Archive)')
-    args= parser.parse_args(sys.argv[2:])
+    args = parser.parse_args(sys.argv[2:])
     select_info = server.select_folder(args.source)
     # Simple test to verify email is in this folder
     labels = server.get_gmail_labels(args.uid)
@@ -146,15 +161,14 @@ def main():
     # XXX Determine filename and open file for logger output if CLI argument
 
     # Process CLI args and dispatch appropriately
-    exe = os.path.basename(sys.argv[0])
     # Note 4
     parser = argparse.ArgumentParser(description='Interact with email account via IMAP to handle NOAA archive data orders.',
-        usage='''{} <command> [<args>]
+        usage='''%(prog)s <command> [<args>]
 
 Where command is one of:
    check    Check email for new AIRS Orders to download
    move     Move email to a different [email system] folder
-'''.format(exe))
+''')
     parser.add_argument('command', help='Subcommand to run')
     # parse_args defaults to [1:] for args, but you need to
     # exclude the rest of the args too, or validation will fail
