@@ -55,6 +55,13 @@ HTML_FN=index_${ORDER_ID}.html
 grep -oiP '(?<=href=")(nam[^"]+tar)(?=")' index.html >file_list_${ORDER_ID}.txt
 mv index.html $HTML_FN
 
+# TODO  Compare file_list against files in $DOWNLOAD_TARGET folder and
+#       _STOP_ processing if any of them are missing
+
+# Exiting before moving files means this script can be re-run (either
+# after a long delay or put back into the ts queue) and _only_ the files
+# that weren't downloaded will be re-downloaded
+
 # Kluge!  Figure out destination directories in case we need to create them
 DEST_PATHS=`perl -e '%paths; while (<>) { chomp; ($t,$yr) = ( m/^nam(anl|)_218_(\d{4})\d{6}.g2.tar$/ ); $t ||= "nmm"; $paths{"$t/$yr"}++; } print join("\n",keys %paths)."\n"; ' $TXT_FN`
 for i in $DEST_PATHS
