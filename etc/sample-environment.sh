@@ -13,3 +13,6 @@ export FOGHAT_IMAP_PASSWD='password'
 # man ts/ts.1  for environment variable description
 export TS_SLOTS=2
 export TS_SAVELIST=$HOME/.foghat_spooler
+
+# Make sure email has HTML entities encoded  (@ → %40)
+export FOGHAT_EMAIL='username%40gmail.com'
