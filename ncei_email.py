@@ -143,6 +143,14 @@ def check(server):
     # TODO Write out updated queued jobs store
 
 def move(server):
+    # This _doesn't_ work.  It has consistently failed as the UID of the
+    # email is different(?) once it's in the Queued folder than when it was
+    # in the INBOX folder.  Or at perhaps it changes after a certain amount
+    # of time?
+    #
+    # TODO  In any case, I need another schema to identify the emails.
+    #       Looking up the Order ID in the subject seems like a suitable
+    #       identifier
     parser = argparse.ArgumentParser(description='Move specified email (by UID) to specified folder')
     parser.add_argument('uid', type=int, help='E-mail UID')
     parser.add_argument('source', type=str, help='Current folder name containing email')
