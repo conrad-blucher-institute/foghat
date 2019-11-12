@@ -17,7 +17,7 @@ mkdir -p $FOGHAT_LOG_DIR  $REQUEST_DIR
 
 # Wait a few seconds
 random_sleep() {
-    local seconds=$((RANDOM % 8 + 1))
+    local seconds=$((RANDOM % 30 + 5))
     echo "?sleeping $seconds seconds" >>$LOG_FILE
     sleep $seconds
 }
