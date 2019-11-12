@@ -143,27 +143,20 @@ def check(server):
     # TODO Write out updated queued jobs store
 
 def move(server):
-    # This _doesn't_ work.  It has consistently failed as the UID of the
-    # email is different(?) once it's in the Queued folder than when it was
-    # in the INBOX folder.  Or at perhaps it changes after a certain amount
-    # of time?
-    #
-    # TODO  In any case, I need another schema to identify the emails.
-    #       Looking up the Order ID in the subject seems like a suitable
-    #       identifier
-    parser = argparse.ArgumentParser(description='Move specified email (by UID) to specified folder')
-    parser.add_argument('uid', type=int, help='E-mail UID')
+    parser = argparse.ArgumentParser(description='Move specified email (by Order ID) to specified folder')
+    parser.add_argument('order', type=str, help='AIRS Order ID')
     parser.add_argument('source', type=str, help='Current folder name containing email')
     parser.add_argument('destination', type=str, help='Destination folder name (or Archive)')
     args = parser.parse_args(sys.argv[2:])
     select_info = server.select_folder(args.source)
-    # Simple test to verify email is in this folder
-    labels = server.get_gmail_labels(args.uid)
-    if not args.uid in labels.keys():
-        logger.error("Can't find email w/ UID #{} in folder {}".format(args.uid,args.source))
+    subject = 'AIRS Order {} Complete'.format(args.order)
+    uids = server.search(['FROM','noreply@noaa.gov','SUBJECT',subject])
+    # Make sure we only found _one_ matching email
+    if len(uids) != 1:
+        logger.error("Can't find email w/ Order ID {} in folder {}".format(args.order,args.source))
         return
-    logger.info("Moving email w/ UID #{} into folder {}".format(args.uid, args.destination))
-    server.move(messages=[args.uid], folder=args.destination)
+    logger.info("Moving email w/ Order ID {} (UID #{}) into folder {}".format(args.order, uids[0], args.destination))
+    server.move(messages=uids, folder=args.destination)
 
 def main():
     # XXX Determine filename and open file for logger output if CLI argument

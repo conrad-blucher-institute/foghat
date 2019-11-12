@@ -55,12 +55,24 @@ HTML_FN=index_${ORDER_ID}.html
 grep -oiP '(?<=href=")(nam[^"]+tar)(?=")' index.html >file_list_${ORDER_ID}.txt
 mv index.html $HTML_FN
 
-# TODO  Compare file_list against files in $DOWNLOAD_TARGET folder and
-#       _STOP_ processing if any of them are missing
-
-# Exiting before moving files means this script can be re-run (either
-# after a long delay or put back into the ts queue) and _only_ the files
-# that weren't downloaded will be re-downloaded
+# Stop processing if we're missing any files so we can efficiently re-run job
+missing=0
+for i in `cat $TXT_FN`
+do
+    if [ ! -e "$i" ]
+    then
+        missing=$((missing + 1))
+    fi
+done
+if [ $missing -gt 0 ]
+then
+    echo -e "?$missing file(s) missing from $DOWNLOAD_TARGET directory.  Exiting early so job can be restarted/requeued.\n" >>$LOG_FILE
+    ZERO=`basename $0`
+    echo "To restart job, run:\n    $ZERO $*\n" >>$LOG_FILE
+    exit 1
+else
+    echo "?All expected files present in $DOWNLOAD_TARGET" >>$LOG_FILE
+fi
 
 # Kluge!  Figure out destination directories in case we need to create them
 DEST_PATHS=`perl -e '%paths; while (<>) { chomp; ($t,$yr) = ( m/^nam(anl|)_218_(\d{4})\d{6}.g2.tar$/ ); $t ||= "nmm"; $paths{"$t/$yr"}++; } print join("\n",keys %paths)."\n"; ' $TXT_FN`
@@ -108,4 +120,4 @@ popd >/dev/null
 rmdir $DOWNLOAD_TARGET
 
 # Move AIRS order email to "processed" folder (i.e., state change)
-./ncei_email.py move $EMAIL_ID Queued Processed >>$LOG_FILE
+./ncei_email.py move $ORDER_ID Queued Processed >>$LOG_FILE 2>&1
