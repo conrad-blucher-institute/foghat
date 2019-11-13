@@ -28,17 +28,24 @@ from envparse import Env
 env = Env(
     FOGHAT_IMAP_HOST   = str,
     FOGHAT_IMAP_USER   = str,
-    FOGHAT_IMAP_PASSWD = str
+    FOGHAT_IMAP_PASSWD = str,
+    FOGHAT_LOG_DIR     = str
 )
+# I don't know how to specify a default for primitive types in the above format
+logger_openfile = env.bool('FOGHAT_LOGGER2FILE', default=False) # Note 5
 
 # Crude sanity check (envfile optional)
-for v in ('FOGHAT_IMAP_HOST', 'FOGHAT_IMAP_USER', 'FOGHAT_IMAP_PASSWD'):
+for v in ('FOGHAT_IMAP_HOST', 'FOGHAT_IMAP_USER', 'FOGHAT_IMAP_PASSWD', 'FOGHAT_LOG_DIR'):
     assert env(v)
 
 # Output log messages w/ [UTC] times in ISO 8601 format and host, program, pid too
 logging.Formatter.converter = time.gmtime  # log message times in GMT/UTC
 host = platform.uname().node            # cross-platform hostname
-logging.basicConfig(format='#%(asctime)s {0} {1}[{2}] %(levelname)s:%(message)s'.format(host, os.path.basename(sys.argv[0]), os.getpid()), datefmt='%Y-%m-%dT%H:%M:%SZ')
+logging_kwargs = dict(format='#%(asctime)s {0} {1}[{2}] %(levelname)s:%(message)s'.format(host, os.path.basename(sys.argv[0]), os.getpid()), datefmt='%Y-%m-%dT%H:%M:%SZ')
+if logger_openfile:
+    logging_kwargs['filename'] = '{}/ncei_email-{}.log'.format(env('FOGHAT_LOG_DIR'), time.strftime("%Y%m%d", time.gmtime()))
+    logging_kwargs['filemode'] = 'a'
+logging.basicConfig(**logging_kwargs)
 
 logger = logging.getLogger(__name__)
 #logger.setLevel(logging.INFO)
@@ -60,6 +67,13 @@ logger.setLevel(logging.DEBUG)  # XXX  REMOVE
   3.  Can't use subprocess.run() b/c Python 3.4
 
   4.  Adapted from https://chase-seibert.github.io/blog/2014/03/21/python-multilevel-argparse.html
+
+  5.  I _was_ going to make logging to a file a CLI option but given the
+      current way I'm using argparse w/ list slice, I'll have to manually
+      detect presence of the optional --log argument in main(), adjust the
+      slice range ([1:2] → [1:3] or somesuch) _and_ adjust the slice range
+      of the parse_args() in the dispatched function (check or move).
+      Easier to make it mandatory
 """
 
 def check(server):
@@ -159,7 +173,6 @@ def move(server):
     server.move(messages=uids, folder=args.destination)
 
 def main():
-    # XXX Determine filename and open file for logger output if CLI argument
 
     # Process CLI args and dispatch appropriately
     # Note 4
@@ -171,6 +184,7 @@ Where command is one of:
    move     Move email to a different [email system] folder
 ''')
     parser.add_argument('command', help='Subcommand to run')
+    # Note 5
     # parse_args defaults to [1:] for args, but you need to
     # exclude the rest of the args too, or validation will fail
     args = parser.parse_args(sys.argv[1:2])
@@ -184,7 +198,7 @@ Where command is one of:
     # use dispatch pattern to invoke method with same name
     dispatch(args.command, server)
     server.logout()
-    # XXX Close logfile, depending on CLI argument
+    logging.shutdown()
 
 # Adapted from https://stackoverflow.com/a/36270394/1502174
 func_name_dict = {

@@ -9,6 +9,9 @@ export FOGHAT_IMAP_HOST='imap.gmail.com'
 export FOGHAT_IMAP_USER='username'
 export FOGHAT_IMAP_PASSWD='password'
 
+# Send ncei_email.py logging output to file instead of stderr
+export FOGHAT_LOGGER2FILE=1
+
 # Only needed for server running Task Spooler (same as above)
 # man ts/ts.1  for environment variable description
 export TS_SLOTS=2
