@@ -78,20 +78,18 @@ NOW=`date`
 echo "?starting request set for NAM data covering year $YEAR on $NOW" >>$LOG_FILE
 
 # One year of NAM-NMM data gets too big for a single request (max size
-# 250GB), so we have to break up a single year into separate requests.  At
-# it's largest data size (in 2019), we can only request a maxmium of ~83
-# days and still be under 250GB, hence breaking up the year into ~2.5 month
-# periods
+# 250GB), so we have to break up a single year into separate requests.
 
 # TODO  Dry run mode or confirmation prompt just in case the wrong year is specified
 
 for cycle in '00' '06' 12 18
 do
-    request_data NAM218 $cycle "$YEAR-01-01" "$YEAR-03-15"
-    request_data NAM218 $cycle "$YEAR-03-16" "$YEAR-05-31"
-    request_data NAM218 $cycle "$YEAR-06-01" "$YEAR-07-31"
-    request_data NAM218 $cycle "$YEAR-08-01" "$YEAR-09-30"
-    request_data NAM218 $cycle "$YEAR-10-01" "$YEAR-10-31"
+    # First range goes to 3/1 to avoid potential leap years
+    request_data NAM218 $cycle "$YEAR-01-01" "$YEAR-03-01"
+    request_data NAM218 $cycle "$YEAR-03-02" "$YEAR-04-30"
+    request_data NAM218 $cycle "$YEAR-05-01" "$YEAR-06-30"
+    request_data NAM218 $cycle "$YEAR-07-01" "$YEAR-08-31"
+    request_data NAM218 $cycle "$YEAR-09-01" "$YEAR-10-31"
     request_data NAM218 $cycle "$YEAR-11-01" "$YEAR-12-31"
 
     # NAM-ANL is small enough to request a full year at a time
