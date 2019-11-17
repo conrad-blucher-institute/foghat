@@ -17,7 +17,7 @@ mkdir -p $FOGHAT_LOG_DIR  $REQUEST_DIR
 
 # Wait a few seconds
 random_sleep() {
-    local seconds=$((RANDOM % 30 + 5))
+    local seconds=$((RANDOM % 45 + 10))
     echo "?sleeping $seconds seconds" >>$LOG_FILE
     sleep $seconds
 }
@@ -89,8 +89,9 @@ for cycle in '00' '06' 12 18
 do
     request_data NAM218 $cycle "$YEAR-01-01" "$YEAR-03-15"
     request_data NAM218 $cycle "$YEAR-03-16" "$YEAR-05-31"
-    request_data NAM218 $cycle "$YEAR-06-01" "$YEAR-08-15"
-    request_data NAM218 $cycle "$YEAR-08-16" "$YEAR-10-31"
+    request_data NAM218 $cycle "$YEAR-06-01" "$YEAR-07-31"
+    request_data NAM218 $cycle "$YEAR-08-01" "$YEAR-09-30"
+    request_data NAM218 $cycle "$YEAR-10-01" "$YEAR-10-31"
     request_data NAM218 $cycle "$YEAR-11-01" "$YEAR-12-31"
 
     # NAM-ANL is small enough to request a full year at a time
