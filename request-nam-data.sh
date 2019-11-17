@@ -30,7 +30,7 @@ request_data() {
 
     read begyear begmonth begday <<<`date -d $date0 '+%Y %m %d' `
     read endyear endmonth endday <<<`date -d $date1 '+%Y %m %d' `
-    output="$REQUEST_DIR/archive-request-$dataset-$cycle-$begyear$begmonth$begday-$endyear$endmonth$endday.html"
+    output="$REQUEST_DIR/archive-request-$dataset-$cycle-$begyear$begmonth$begday-$endyear$endmonth${endday}_$TODAY.html"
 
     # Random sleep between requests so we don't look _that_ obvious
     random_sleep
