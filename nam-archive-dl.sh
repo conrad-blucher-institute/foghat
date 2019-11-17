@@ -86,6 +86,7 @@ done
 # Copy/archive filelist w/ order ID somewhere.  E.g., file_list_$ORDER_ID.txt
 mv $TXT_FN $HTML_FN $VAR_DIR
 
+errors=0
 # Move files to correct archive directory (somewhere under $ARCHIVE_DIR)
 echo "Moving files to archive directory:" >>$LOG_FILE
 # Put nam_218_2009052200.g2.tar [NAM-NMM] files in $ARCHIVE_DIR/nmm/$year
@@ -98,6 +99,7 @@ do
     fi
     year=`echo $i | sed -r 's/(^nam_218_|[0-9]{6}.g2.tar$)//g;'`
     mv $i $ARCHIVE_DIR/nmm/$year/
+    [[ $? -ne 0 ]] && errors=$((errors + 1))
     echo "  • $i → $ARCHIVE_DIR/nmm/$year/$i" >>$LOG_FILE
 done
 # Put namanl_218_2009052100.g2.tar [NAM-ANL] files in  $ARCHIVE_DIR/anl/$year
@@ -109,8 +111,17 @@ do
     fi
     year=`echo $i | sed -r 's/(^namanl_218_|[0-9]{6}.g2.tar$)//g;'`
     mv $i $ARCHIVE_DIR/anl/$year/
+    [[ $? -ne 0 ]] && errors=$((errors + 1))
     echo "  • $i → $ARCHIVE_DIR/anl/$year/$i" >>$LOG_FILE
 done
+
+if [[ $errors -gt 0 ]]
+then
+    echo "?$errors error(s) when trying to move files from $DOWNLOAD_TARGET to correct archive folder.  Exiting early so job can be restarted/requeued.\n" >>$LOG_FILE
+    ZERO=`basename $0`
+    echo "To restart job, run:\n    $ZERO $*\n" >>$LOG_FILE
+    exit 1
+fi
 
 popd >/dev/null
 
