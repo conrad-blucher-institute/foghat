@@ -50,6 +50,10 @@ request_data() {
 -H 'DNT: 1'  \
 --data "satdisptype=N%2FA&stations=$cycle&station_lst=&typeofdata=MODEL&dtypelist=&begdatestring=&enddatestring=&begyear=$begyear&begmonth=$begmonth&begday=$begday&beghour=&begmin=&endyear=$endyear&endmonth=$endmonth&endday=$endday&endhour=&endmin=&outmed=FTP&outpath=&pri=500&datasetname=$dataset&directsub=Y&emailadd=$FOGHAT_EMAIL&outdest=FILE&applname=&subqueryby=STATION&tmeth=Awaiting-Data-Transfer" \
 --output $output >>$LOG_FILE
+
+    # TODO  Parse HTML response file looking for internal server error (500) or data volume exceeds 250GB messages
+    #
+    # See https://gist.github.com/dbcooper/2bf41c1152c8828bf03621411edca28e
 }
 
 # Print usage and die
