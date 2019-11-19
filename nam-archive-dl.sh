@@ -14,6 +14,14 @@ usage () {
     exit
 }
 
+restart_job () {
+    local msg=$1
+    echo -e "${msg}.  Exiting early so job can be restarted/requeued." >>$LOG_FILE
+    local zero=`basename $0`
+    echo -e "To restart job, run:\n\n    $zero $EMAIL_ID $ORDER_ID $URL\n" >>$LOG_FILE
+    exit 1
+}
+
 if [[ -z "$1" || -z "$2" || -z "$3" ]]
 then
     usage
@@ -43,6 +51,21 @@ WGET_END=`date -u '+%s'`
 DELTA=$((WGET_END - WGET_START))
 echo "?downloaded files in $URL in $DELTA seconds" >>$LOG_FILE
 
+# Any of these conditions likely means there was a problem w/ the download
+# e.g., 503 service unavailable
+if [ ! -d "$DOWNLOAD_TARGET" ]
+then
+    restart_job "?Download directory  $DOWNLOAD_TARGET  doesn't exist"
+fi
+if [ `ls -1 $DOWNLOAD_TARGET | wc -l` -lt 1 ]
+then
+    restart_job "?No files in download directory  $DOWNLOAD_TARGET"
+fi
+if [ ! -e "$DOWNLOAD_TARGET/index.html" ]
+then
+    restart_job "?No index.html file in download directory  $DOWNLOAD_TARGET "
+fi
+
 # Cleanup temporary download directory
 pushd $PWD >/dev/null
 cd $DOWNLOAD_TARGET
@@ -66,10 +89,7 @@ do
 done
 if [ $missing -gt 0 ]
 then
-    echo -e "?$missing file(s) missing from $DOWNLOAD_TARGET directory.  Exiting early so job can be restarted/requeued.\n" >>$LOG_FILE
-    ZERO=`basename $0`
-    echo "To restart job, run:\n    $ZERO $*\n" >>$LOG_FILE
-    exit 1
+    restart_job "?$missing file(s) missing from $DOWNLOAD_TARGET directory"
 else
     echo "?All expected files present in $DOWNLOAD_TARGET" >>$LOG_FILE
 fi
@@ -117,10 +137,7 @@ done
 
 if [[ $errors -gt 0 ]]
 then
-    echo "?$errors error(s) when trying to move files from $DOWNLOAD_TARGET to correct archive folder.  Exiting early so job can be restarted/requeued.\n" >>$LOG_FILE
-    ZERO=`basename $0`
-    echo "To restart job, run:\n    $ZERO $*\n" >>$LOG_FILE
-    exit 1
+    restart_job "?$errors error(s) when trying to move files from $DOWNLOAD_TARGET to correct archive folder"
 fi
 
 popd >/dev/null
