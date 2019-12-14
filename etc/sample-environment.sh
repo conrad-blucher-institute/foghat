@@ -19,3 +19,8 @@ export TS_SAVELIST=$HOME/.foghat_spooler
 
 # Make sure email has HTML entities encoded  (@ → %40)
 export FOGHAT_EMAIL='username%40gmail.com'
+
+# Slightly confusing, but where to store generated model input files
+export FOGHAT_INPUT_DIR=$FOGHAT_BASE/input
+export FOGHAT_EXE_DIR=$HOME/git/foghat
+
