@@ -7,7 +7,7 @@ LAT_LON='-97.7:-96 27:28.5'
 
 # Build a single regex w/ all the predictors at all the levels we want
 ATMOSPHERIC=':(TMP|RH|UGRD|VGRD|TKE|VVEL):(700|725|750|775|800|825|850|875|900|925|950|975|1000) mb:'
-ABOVE_GROUND=':(TMP|DPT|UGRD|VGRD):(2|10) m above ground:'
+ABOVE_GROUND=':(TMP|DPT|RH|UGRD|VGRD):(2|10) m above ground:'
 SURFACE=':(FRICV|VIS):surface:'
 MATCH_RE="($ATMOSPHERIC|$ABOVE_GROUND|$SURFACE)"
 
