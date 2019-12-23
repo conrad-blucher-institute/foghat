@@ -1,7 +1,7 @@
 Fog Prediction System Notes
 ===========================
 
-Download data that we _might_ use for [development of] operational Fog prediction system.
+Download and prepare data for research [and possibly] operational Fog prediction system.
 
 Setup
 -----
@@ -36,3 +36,10 @@ Example `wget` command for download all files from Matthew Pyle's temporary down
 
 Best to run something like the above w/in a `tmux` session
 
+
+netCDF Files
+------------
+
+If this system will be preparing netCDF files for DLNN input, you need to prepare the OS environment before installing python requirements.
+
+- Centos: make sure to `yum install netcdf-devel` _before_ `pip install netCDF4` (in the appropriate virtual environment)
