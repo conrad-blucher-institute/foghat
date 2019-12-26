@@ -5,7 +5,9 @@ from netCDF4 import Dataset
 import numpy as np
 
 def specific_humidity(nc):
-    """Given a NetCDF dataset, calculate mixing ratio for all desired pressure levels and save as new variables in the supplied dataset"""
+    """Given a NetCDF dataset, calculate mixing ratio for all desired
+       pressure levels and save as new variables in the supplied dataset
+    """
     scratch = {}                        # temporary Numpy arrays/layers used for calculations
     # Loop over each desired pressure level (in millibars)
     for pres in range(700,1000+1,25):
@@ -34,13 +36,25 @@ def specific_humidity(nc):
     vap_pres = es*( nc.variables['RH_2maboveground'][:] / 100)
     # Mixing Ratio (mr)
     pres_mb = nc.variables['PRES_surface'][:] / 100 # Convert Pascals → mbar
-    # XXX  Note the pressure in this calculation is gridded/an array, _not_ a scalar
+    # NOTE pressure in this calculation is gridded/an array, _not_ a scalar
     mr = ( (622*vap_pres)/(pres_mb - vap_pres) ) * 1000
     # Specific Humidity (q)
     q = mr / (1+mr)
     scratch[f'Q_surface'] = q
 
-    print(scratch)
+    # Add DeltaQ* variables to NetCDF dataset/file
+    qsfc1000 = nc.createVariable('DeltaQSFC1000', 'f', ('time','x','y'))
+    qsfc1000[:] = scratch['Q_surface'] - scratch['Q_1000mb']
+    qsfc1000.long_name = f'Delta of specific humidity (q) between surface and 1000mb'
+    qsfc1000.short_name = 'DeltaQSFC1000'
+
+    for minuend in range(1000, 725-1, -25):
+        sub = minuend - 25              # subtrahend
+        name = f'DeltaQ{minuend}{sub}'
+        q_delta = nc.createVariable(name, 'f', ('time','x','y'))
+        q_delta[:] = scratch[f'Q_{minuend}mb'] - scratch[f'Q_{sub}mb']
+        q_delta.long_name = f'Delta of specific humidity (q) between {minuend}mb and {sub}mb'
+        q_delta.short_name = name
 
 
 def process_file(filename):
