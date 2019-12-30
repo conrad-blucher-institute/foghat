@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import argparse
+import time
+import math
 from netCDF4 import Dataset
 import numpy as np
 
@@ -36,11 +38,17 @@ def specific_humidity(nc):
     vap_pres = es*( nc.variables['RH_2maboveground'][:] / 100)
     # Mixing Ratio (mr)
     pres_mb = nc.variables['PRES_surface'][:] / 100 # Convert Pascals → mbar
-    # NOTE pressure in this calculation is gridded/an array, _not_ a scalar
+    # XXX  Note the pressure in this calculation is gridded/an array, _not_ a scalar
     mr = ( (622*vap_pres)/(pres_mb - vap_pres) ) * 1000
     # Specific Humidity (q)
     q = mr / (1+mr)
     scratch[f'Q_surface'] = q
+
+    # We want Specific Humidity (q) at surface in dataset, I believe
+    qsfc = nc.createVariable('Q_surface', 'f', ('time','x','y'))
+    qsfc[:] = q
+    qsfc.long_name = 'Specific humidity (q) at surface'
+    qsfc.short_name = 'Q_surface'
 
     # Add DeltaQ* variables to NetCDF dataset/file
     qsfc1000 = nc.createVariable('DeltaQSFC1000', 'f', ('time','x','y'))
@@ -55,6 +63,39 @@ def specific_humidity(nc):
         q_delta[:] = scratch[f'Q_{minuend}mb'] - scratch[f'Q_{sub}mb']
         q_delta.long_name = f'Delta of specific humidity (q) between {minuend}mb and {sub}mb'
         q_delta.short_name = name
+
+
+def lclt(nc):
+    """Given a NetCDF dataset, calculate lifted condensation level
+       temperature (LCL_T) [at surface?] and save as new variables in
+       the supplied dataset
+    """
+    denominator = 1/(nc.variables['TMP_2maboveground'][:] - 55) - np.log(nc.variables['RH_2maboveground'][:] / 100)
+    temp = 1/denominator + 55
+    lcl_t = nc.createVariable('LCLT', 'f', ('time','x','y'))
+    lcl_t[:] = temp
+    lcl_t.long_name = 'Lifted Condensation Level Temperature'
+    lcl_t.short_name = 'LCL_T'
+    lcl_t.units = 'Kelvin'
+
+
+def dateval(nc):
+    """Given a NetCDF dataset, calculate the DateVal(t) function for
+       the time of day the predictions _represent_ (model cycle time
+       + forecast hour) and save as a new variable in the supplied
+       dataset.
+
+       This is used to tell the model what time of year it is.
+    """
+    # Model cycle time + Forecast hour time value in seconds since epoch (float)
+    gmt = nc.variables['time'][:][0]
+    # Julian Day for above ([1,366] → [0,365])
+    doy = time.gmtime(gmt).tm_yday - 1
+    dateval = (math.sin(math.pi*doy/365))**2
+    dv = nc.createVariable('DateVal', 'f', ('time'))
+    dv[:] = dateval
+    dv.long_name = 'Date Value (sine of Julian Day)'
+    dv.short_name = 'DateVal'
 
 
 def process_file(filename):
@@ -107,18 +148,19 @@ def process_file(filename):
     #print(x*2)
     """
 
-    # Time value for file in seconds since epoch (float)
-    t = nc.variables['time'][:]
-    print(t[0])
-
     # Add specific humidity derived variables to dataset
     specific_humidity(nc)
-    # TODO  Add Lifted Condensation Level Temperature (LCL_T)s to dataset
+    # Add Lifted Condensation Level Temperature (LCL_T)s to dataset
+    lclt(nc)
+    # Add DateVal (sine of Julian day) to dataset
+    dateval(nc)
+
     # TODO  Remove pressure at surface (PRES_surface) from dataset, as per Waylon
-    # TODO  Add julian day calculation to dataset
 
     # TODO  Save/flush dataset to file
+    print(nc.History)
 
+# TODO  Wrap in __main__ function
 
 #process_file('maps_20180624_0000_007_input.nc')
 parser = argparse.ArgumentParser()
