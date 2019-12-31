@@ -1,8 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import time
 import math
+import sys
+import os
 from netCDF4 import Dataset
 import numpy as np
 
@@ -99,54 +101,9 @@ def dateval(nc):
 
 
 def process_file(filename):
-    #nc = Dataset(filename, 'r')
+    # Opening in append mode means every createVariable() call will add
+    # another variable to the file
     nc = Dataset(filename, 'a')
-    x = nc.variables['x'][:]
-    y = nc.variables['y'][:]
-
-    print(x)
-    print(y)
-    # Looks like each of these is a list of 14 sublists, each containing the 14 latitudes/longitudes for those points
-    latitude = nc.variables['latitude'][:]
-    longitude = nc.variables['longitude'][:]
-    #print(latitude)
-    #print(longitude)
-
-    times = nc.variables['time'][:]
-    #nc.createVariable('DateVal', 'f', ('time'))
-    #nc.createVariable('VAPE_850mb', 'f', ('time', 'x', 'y'))
-    #print(times)
-
-    nc_attrs = nc.ncattrs()
-    for attr in nc_attrs:
-        thing = nc.getncattr(attr)
-        print(f'{attr} -> {thing}')
-
-    # Dimension(s) of the NetCDF dataset?
-    """
-    print(nc.dimensions)
-    nc_dims = [dim for dim in nc.dimensions]
-    print(nc_dims)
-    for label in nc_dims:
-        obj = nc.dimensions[label]
-        print(f'{obj.name}   {obj.size}')
-
-    for var in nc.variables:
-        print(f'Name: {var}')
-        vobj = nc.variables[var]
-        print(f'# of Dimensions: {vobj.ndim}')
-        print(f'Dimensions: {vobj.dimensions}')
-        print(f'size: {vobj.size}')
-        print(f'shape: {vobj.shape}')
-
-    #print(nc.variables['VIS_surface'])
-    x = nc.variables['VIS_surface'][:]
-    #print(x)
-    print(x[0,0,0])
-    print(x[0,0,1])
-    print(x[0,1,1])
-    #print(x*2)
-    """
 
     # Add specific humidity derived variables to dataset
     specific_humidity(nc)
@@ -155,10 +112,20 @@ def process_file(filename):
     # Add DateVal (sine of Julian day) to dataset
     dateval(nc)
 
-    # TODO  Remove pressure at surface (PRES_surface) from dataset, as per Waylon
+    # XXX  Can't remove pressure at surface (PRES_surface) from dataset
+    #      here as NetCDF-API doesn't support deletion from a NetCDF
+    #      dataset.  Easier to do w/ CLI tool ncks
 
-    # TODO  Save/flush dataset to file
-    print(nc.History)
+    # Add modified message to NetCDF file history
+    old_hist = nc.History
+    argv0 = os.path.basename(sys.argv[0])
+    when = time.ctime(time.time())
+    modified = f'{old_hist}, modified by {argv0} on {when}'
+    nc.History = modified
+
+    # Flushing dataset to file should be automatic
+    nc.close()
+
 
 # TODO  Wrap in __main__ function
 
