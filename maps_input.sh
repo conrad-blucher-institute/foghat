@@ -39,7 +39,8 @@ process_grib_file() {
     local noext=`echo $filename | sed 's/^nam_218/maps/; s/\.grb2//;'`
     local unsorted=${noext}_raw.grb2
     local sorted=${noext}_sorted.grb2
-    local netcdf=${noext}_input.nc
+    local netcdf=${noext}_wip.nc
+    local final_netcdf=${noext}_input.nc
 
     # Clip out the variables and levels we want w/in the desired bounding box
     wgrib2 $filename -set_grib_type c2 -match "$MATCH_RE" -small_grib $LAT_LON $unsorted >/dev/null 2>>"$LOG_FILE"
@@ -50,10 +51,11 @@ process_grib_file() {
     # Convert to NetCDF
     wgrib2 $sorted -netcdf $netcdf >/dev/null 2>>"$LOG_FILE"
 
-    # TODO  Using variables in NetCDF file, add derived variables as new layers ?
-    # TODO  Output new NetCDF file w/ all desired predictors
-    # TODO  Will also need predictor/value  [what did I mean?]
+    # Using variables in NetCDF file, add derived variables (in place)
+    $FOGHAT_EXE_DIR/maps_derived.py $netcdf 2>>"$LOG_FILE"
 
+    # Remove pressure at surface (PRES_surface) from NetCDF file, as per Waylon
+    ncks --no_alphabetize -O -x -v PRES_surface $netcdf $final_netcdf
 }
 
 # Process all forecast hours files in a given (date, model cycle) tarfile
@@ -104,6 +106,7 @@ process_day_cycle() {
 
 process_day_cycle  2018-06-24 00
 
+# TODO  Process MUR SST file for given day as well (cKip)
 
 # TODO  Compare/dump grb2 file with pure converted NetCDF file to ensure contents are the same
 
