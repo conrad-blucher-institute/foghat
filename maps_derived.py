@@ -93,11 +93,21 @@ def dateval(nc):
     gmt = nc.variables['time'][:][0]
     # Julian Day for above ([1,366] → [0,365])
     doy = time.gmtime(gmt).tm_yday - 1
-    dateval = (math.sin(math.pi*doy/365))**2
+    dv_float = (math.sin(math.pi*doy/365))**2
     dv = nc.createVariable('DateVal', 'f', ('time'))
-    dv[:] = dateval
+    dv[:] = dv_float
     dv.long_name = 'Date Value (sine of Julian Day)'
     dv.short_name = 'DateVal'
+
+
+def add_cli_history(nc):
+    """Add this command line invocation information to NetCDF file history"""
+    old_hist = nc.History
+    argv0 = os.path.basename(sys.argv[0])
+    argv_star = ' '.join(sys.argv[1:])
+    when = time.ctime(time.time())
+    modified = f'{when}: {argv0} {argv_star}\n{old_hist}'
+    nc.History = modified
 
 
 def process_file(filename):
@@ -114,24 +124,18 @@ def process_file(filename):
 
     # XXX  Can't remove pressure at surface (PRES_surface) from dataset
     #      here as NetCDF-API doesn't support deletion from a NetCDF
-    #      dataset.  Easier to do w/ CLI tool ncks
+    #      dataset.  Do w/ CLI tool ncks
 
     # Add modified message to NetCDF file history
-    old_hist = nc.History
-    argv0 = os.path.basename(sys.argv[0])
-    when = time.ctime(time.time())
-    modified = f'{old_hist}, modified by {argv0} on {when}'
-    nc.History = modified
+    add_cli_history(nc)
 
     # Flushing dataset to file should be automatic
     nc.close()
 
 
-# TODO  Wrap in __main__ function
-
-#process_file('maps_20180624_0000_007_input.nc')
-parser = argparse.ArgumentParser()
-parser.add_argument('file', help='NetCDF file to modify in place')
-args = parser.parse_args()
-if (args.file):
-    process_file(args.file)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file', help='NetCDF file to modify in place')
+    args = parser.parse_args()
+    if args.file:
+        process_file(args.file)
