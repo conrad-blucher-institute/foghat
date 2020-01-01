@@ -32,13 +32,21 @@ TODAY=`date -u '+%Y%m%d'`
 # Include PID in log filename in case multiple instances of this process are running simultaneously
 LOG_FILE="$FOGHAT_LOG_DIR/maps_input-$TODAY-$$.log"
 
-# TODO  Create notes file to contain missing days/data for NetCDF data consumers
-
 mkdir -p "$FOGHAT_LOG_DIR"  "$OUTPUT_DIR"
 
 # Ensure (process-specific) local node storage for all temporary files
 TMP_DIR=`mktemp -d --suffix=.${TODAY}-maps_input`
 
+# Log brief error messages to notes file (e.g. missing days/data) for
+# NetCDF data consumers
+note() {
+    local when=$1
+    local msg=$2
+
+    local year=`date -d "$when" '+%Y'`
+    local fn="$OUTPUT_DIR/processing-notes-$year.txt"
+    echo $msg >"$fn"
+}
 
 process_grib_file() {
     local filename=$1
@@ -53,6 +61,14 @@ process_grib_file() {
 
     # Reorder grib2 variables [predictors] as noted in Waylon's document
     wgrib2 $unsorted | $FOGHAT_EXE_DIR/grib2_inv_reorder.pl | wgrib2 -i $unsorted -set_grib_type c2 -grib_out $sorted >/dev/null
+
+    # Make sure temporary GRIB file exists _and_ has content before continuing
+    local size=`stat -c '%s' $sorted 2>/dev/null || echo 0`
+    if [[ ! -e "$sorted" || $size -le 69 ]]
+    then
+        echo "?Error(s) occurred when trying to process $filename GRIB file, skipping" 1>&2
+        return
+    fi
 
     # Convert to NetCDF
     wgrib2 $sorted -netcdf $netcdf >/dev/null
@@ -70,7 +86,6 @@ process_day_cycle() {
     local cycle=$2
 
     local start_t=`date '+%s'`
-
     local ymd=`date -d "$when" '+%Y %m%d'`
     read year md <<<$ymd                # year, month+day
     printf -v mc '%02d' $cycle          # model cycle, formatted
@@ -81,7 +96,7 @@ process_day_cycle() {
 
     if [[ ! -e $tarfile ]]
     then
-        # TODO  Log error somewhere else (notes)
+        note "$when" "($year$md, $cycle) Can't find source data grib tarfile ($tarfile), skipping"
         echo "?Can't find ($year$md, $cycle) grib tarfile, $tarfile " 1>&2
         return
     fi
@@ -101,15 +116,16 @@ process_day_cycle() {
     done
 
     local delta_t=$((`date '+%s'` - start_t))
-    echo "?$count forecast hour files processed from $fn in $delta_t seconds" 1>&2
+    echo "?$count forecast hour files processed from $tarfile in $delta_t seconds" 1>&2
 
     # Count should be 37 files, if not then log [somewhere else], [probably] discard?
     if [ $count -ne $EXPECTED_COUNT ]
     then
-        # TODO  Add message/note about missing day/model cycle
-        echo "?Only saw $count .grb2 files after processing ($year$md, $cycle) grib tarfile, expected $EXPECTED_COUNT.  Skipping model cycle" 1>&2
+        echo "?Only saw $count .grb2 file(s) when processing ($year$md, $cycle) grib tarfile, expected $EXPECTED_COUNT.  Skipping model cycle file $tarfile " 1>&2
+        note "$when" "($year$md, $cycle) Expected $EXPECTED_COUNT .grb2 files when processing model cycle but only saw $count.  Skipping model cycle"
         # Remove files from temporary directory so we don't fill up disk on errors
-        rm *.nc *.grb2
+        # TODO  ¿ Add CLI option to _not_ remove files for investigating errors during processing ?
+        rm *.nc *.grb2 2>/dev/null
         return
     fi
 
@@ -119,7 +135,7 @@ process_day_cycle() {
     mkdir -p "$dest_path"
     cp maps_$year*_input.nc "$dest_path"
 
-    # TODO  [optional] CLI option to copy temporary (WIP) NetCDF files ± source [clipped/sorted] .grb2 files into destination directory for verification
+    # TODO  ¿ Add CLI option to copy temporary (WIP) NetCDF files ± source [clipped/sorted] .grb2 files into destination directory for verification ?
 
     # Remove files _from_ temporary directory (but not directory itself) before next call
     rm *.nc *.grb2
@@ -195,7 +211,7 @@ doy2=$((10#$doy2))
 [[ $year1 == $year2 && $doy1 > $doy2 ]] && echo  "?ensure starting date ($year1$doy1) is before end date ($year2$doy2)" 1>&2 && usage
 
 now=`date`
-echo "?generating MapS input data from $1 ($year1,$doy1) to $2 ($year2,$doy2) on $now" >>"$LOG_FILE"
+echo "?generating MapS input data from $1 ($year1, day $doy1) to $2 ($year2, day $doy2) on $now" >>"$LOG_FILE"
 
 # Track time spent processing _all_ requested days and forecast hours
 start_t=`date '+%s'`
@@ -237,8 +253,9 @@ popd >/dev/null
 
 delta_t=$((`date '+%s'` - start_t))
 elapsed=$(seconds2hms $delta_t)
-echo "?processed $count day(s) of data in $elapsed time" >>"$LOG_FILE"
+echo "?processed $count day(s) of data in $elapsed time ($delta_t seconds)" >>"$LOG_FILE"
 
 # Remove temporary directory (but should already be empty)
 echo "?removing temporary directory, $TMP_DIR" >>"$LOG_FILE"
+# TODO  ¿ Add CLI option to _not_ remove files for investigating errors during processing?
 rm -r $TMP_DIR
