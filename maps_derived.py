@@ -111,26 +111,29 @@ def add_cli_history(nc):
 
 
 def process_file(filename):
-    # Opening in append mode means every createVariable() call will add
-    # another variable to the file
-    nc = Dataset(filename, 'a')
+    try:
+        # Opening in append mode means every createVariable() call will
+        # add another variable to the file
+        nc = Dataset(filename, 'a')
 
-    # Add specific humidity derived variables to dataset
-    specific_humidity(nc)
-    # Add Lifted Condensation Level Temperature (LCL_T)s to dataset
-    lclt(nc)
-    # Add DateVal (sine of Julian day) to dataset
-    dateval(nc)
+        # Add specific humidity derived variables to dataset
+        specific_humidity(nc)
+        # Add Lifted Condensation Level Temperature (LCL_T)s to dataset
+        lclt(nc)
+        # Add DateVal (sine of Julian day) to dataset
+        dateval(nc)
 
-    # XXX  Can't remove pressure at surface (PRES_surface) from dataset
-    #      here as NetCDF-API doesn't support deletion from a NetCDF
-    #      dataset.  Do w/ CLI tool ncks
+        # XXX  Can't remove pressure at surface (PRES_surface) from
+        #      dataset here as NetCDF-API doesn't support deletion from a
+        #      NetCDF dataset.  Do w/ CLI tool ncks
 
-    # Add modified message to NetCDF file history
-    add_cli_history(nc)
+        # Add modified message to NetCDF file history
+        add_cli_history(nc)
 
-    # Flushing dataset to file should be automatic
-    nc.close()
+        # Flushing dataset to file should be automatic
+        nc.close()
+    except OSError as err:
+        print(f'?error when trying to process file "{filename}": {err.strerror}', file=sys.stderr)
 
 
 if __name__ == "__main__":
