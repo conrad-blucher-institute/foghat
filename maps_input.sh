@@ -45,7 +45,7 @@ note() {
 
     local year=`date -d "$when" '+%Y'`
     local fn="$OUTPUT_DIR/processing-notes-$year.txt"
-    echo $msg >"$fn"
+    echo $msg >>"$fn"
 }
 
 process_grib_file() {
