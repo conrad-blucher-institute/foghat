@@ -72,7 +72,7 @@ def lclt(nc):
        temperature (LCL_T) [at surface?] and save as new variables in
        the supplied dataset
     """
-    denominator = 1/(nc.variables['TMP_2maboveground'][:] - 55) - np.log(nc.variables['RH_2maboveground'][:] / 100)
+    denominator = 1/(nc.variables['TMP_2maboveground'][:] - 55) - ( np.log(nc.variables['RH_2maboveground'][:]/100) / 2840 )
     temp = 1/denominator + 55
     lcl_t = nc.createVariable('LCLT', 'f', ('time','x','y'))
     lcl_t[:] = temp
