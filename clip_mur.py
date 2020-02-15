@@ -16,8 +16,8 @@ def clip(filename):
     # Code stolen/adapted from https://stackoverflow.com/a/29136166/1502174
 
     # Hamid's [expanded] MapS DLNN bounding box
-    latbounds = [ 25.74 , 29.5 ]
-    lonbounds = [ -97.77 , -94 ] # degrees east
+    latbounds = [ 25.24 , 29.0 ]
+    lonbounds = [ -98.01 , -94.25 ] # degrees east
 
     lats = nc.variables['lat'][:]
     lons = nc.variables['lon'][:]

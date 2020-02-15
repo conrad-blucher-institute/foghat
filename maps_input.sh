@@ -3,10 +3,10 @@
 # Generate Deep Learning Neural Net MapS fog input data for Hamid
 
 # Bounding box for Hamid's MapS DL NN
-LON_LAT='-97.7:-96 27:28.5'
+LON_LAT='-98.01:-94.20 25.4:28.85'
 
 # MUR SST ncks latitude/longitude filtering CLI options (should match above)
-MUR_NCKS_ARGS='-d lat,27.0,28.5 -d lon,-97.7,-96.0'
+MUR_NCKS_ARGS='-d lat,25.24,29.0 -d lon,-98.01,-94.25'
 
 # Build a single regex w/ all the predictors at all the levels we want
 ATMOSPHERIC=':(TMP|RH|UGRD|VGRD|TKE|VVEL):(700|725|750|775|800|825|850|875|900|925|950|975|1000) mb:'
