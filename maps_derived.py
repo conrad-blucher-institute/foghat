@@ -26,10 +26,13 @@ def specific_humidity(nc):
         # Vapor Pressure (e)
         vap_pres = es*( nc.variables[f'RH_{level}'][:] / 100)
         # Mixing Ratio (mr)
-        mr = ( (622*vap_pres) / (pres-vap_pres) )*1000
+        mr = ( (0.622*vap_pres) / (pres-vap_pres) )
         # Specific Humidity (q)
         q = mr / (1+mr)
         scratch[f'Q_{level}'] = q
+        # Virtual temperature
+        tv = (1 + 0.61*mr)*temp_c
+        scratch[f'Tv_{level}'] = tv
     # Calculate Specific Humidity (q) for the "surface"
     temp_c = nc.variables['TMP_2maboveground'][:] - 273.15
     # π  [exponent]
@@ -41,10 +44,13 @@ def specific_humidity(nc):
     # Mixing Ratio (mr)
     pres_mb = nc.variables['PRES_surface'][:] / 100 # Convert Pascals → mbar
     # XXX  Note the pressure in this calculation is gridded/an array, _not_ a scalar
-    mr = ( (622*vap_pres)/(pres_mb - vap_pres) ) * 1000
+    mr = ( (0.622*vap_pres)/(pres_mb - vap_pres) )
     # Specific Humidity (q)
     q = mr / (1+mr)
-    scratch[f'Q_surface'] = q
+    scratch['Q_surface'] = q
+    # Virtual temperature
+    tv = (1 + 0.61*mr)*temp_c
+    scratch['Tv_surface'] = tv
 
     # We want Specific Humidity (q) at surface in dataset, I believe
     qsfc = nc.createVariable('Q_surface', 'f', ('time','x','y'))
@@ -52,19 +58,40 @@ def specific_humidity(nc):
     qsfc.long_name = 'Specific humidity (q) at surface'
     qsfc.short_name = 'Q_surface'
 
-    # Add DeltaQ* variables to NetCDF dataset/file
-    qsfc1000 = nc.createVariable('DeltaQSFC1000', 'f', ('time','x','y'))
-    qsfc1000[:] = scratch['Q_surface'] - scratch['Q_1000mb']
-    qsfc1000.long_name = f'Delta of specific humidity (q) between surface and 1000mb'
-    qsfc1000.short_name = 'DeltaQSFC1000'
+    # Add DeltaQ*, DeltaZ* and DeltaQ/DeltaZ variables to NetCDF dataset/file
+    q1000sfc = nc.createVariable('DeltaQ1000SFC', 'f', ('time','x','y'))
+    q1000sfc[:] = scratch['Q_1000mb'] - scratch['Q_surface']
+    q1000sfc.long_name = f'Delta of specific humidity (q) between 1000mb and surface'
+    q1000sfc.short_name = 'DeltaQ1000SFC'
 
-    for minuend in range(1000, 725-1, -25):
-        sub = minuend - 25              # subtrahend
-        name = f'DeltaQ{minuend}{sub}'
+    # Average of virtual temperatures
+    tv_avg = (scratch['Tv_1000mb'] + scratch['Tv_surface']) / 2
+    # DeltaZ = (Rd*avg(Tv)*ln(P1/P2)) / g
+    delta_z =  (287*tv_avg * np.log(pres_mb/1000)) / 9.8
+    # DeltaQ / DeltaZ
+    dqdz1000sfc = nc.createVariable('DQDZ1000SFC', 'f', ('time','x','y'))
+    dqdz1000sfc[:] = (scratch['Q_1000mb'] - scratch['Q_surface']) / delta_z
+    dqdz1000sfc.long_name = f'DeltaQ over DeltaZ between 1000mb and surface'
+    dqdz1000sfc.short_name = 'DQDZ1000SFC'
+
+    for p1 in range(1000, 725-1, -25):
+        p2 = p1 - 25                    # lower pressure → higher elevation
+        name = f'DeltaQ{p2}{p1}'
         q_delta = nc.createVariable(name, 'f', ('time','x','y'))
-        q_delta[:] = scratch[f'Q_{minuend}mb'] - scratch[f'Q_{sub}mb']
-        q_delta.long_name = f'Delta of specific humidity (q) between {minuend}mb and {sub}mb'
+        q_delta[:] = scratch[f'Q_{p2}mb'] - scratch[f'Q_{p1}mb']
+        q_delta.long_name = f'Delta of specific humidity (q) between {p2}mb and {p1}mb'
         q_delta.short_name = name
+
+        # Average of virtual temperatures
+        tv_avg = (scratch[f'Tv_{p1}mb'] + scratch[f'Tv_{p2}mb']) / 2
+        # DeltaZ = (Rd*avg(Tv)*ln(P1/P2)) / g
+        delta_z = (287*tv_avg * np.log(p1/p2)) / 9.8
+        # DeltaQ / DeltaZ
+        name = f'DQDZ{p2}{p1}'
+        dqdzp2p1 = nc.createVariable(name, 'f', ('time','x','y'))
+        dqdzp2p1[:] = (scratch[f'Q_{p2}mb'] - scratch[f'Q_{p1}mb']) / delta_z
+        dqdzp2p1.long_name = f'DeltaQ over DeltaZ between {p2}mb and {p1}mb'
+        dqdzp2p1.short_name = name
 
 
 def lclt(nc):
