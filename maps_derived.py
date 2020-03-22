@@ -58,11 +58,7 @@ def specific_humidity(nc):
     qsfc.long_name = 'Specific humidity (q) at surface'
     qsfc.short_name = 'Q_surface'
 
-    # Add DeltaQ*, DeltaZ* and DeltaQ/DeltaZ variables to NetCDF dataset/file
-    q1000sfc = nc.createVariable('DeltaQ1000SFC', 'f', ('time','x','y'))
-    q1000sfc[:] = scratch['Q_1000mb'] - scratch['Q_surface']
-    q1000sfc.long_name = f'Delta of specific humidity (q) between 1000mb and surface'
-    q1000sfc.short_name = 'DeltaQ1000SFC'
+    # Add DeltaQ/DeltaZ variables to NetCDF dataset/file
 
     # Average of virtual temperatures
     tv_avg = (scratch['Tv_1000mb'] + scratch['Tv_surface']) / 2
@@ -76,12 +72,6 @@ def specific_humidity(nc):
 
     for p1 in range(1000, 725-1, -25):
         p2 = p1 - 25                    # lower pressure → higher elevation
-        name = f'DeltaQ{p2}{p1}'
-        q_delta = nc.createVariable(name, 'f', ('time','x','y'))
-        q_delta[:] = scratch[f'Q_{p2}mb'] - scratch[f'Q_{p1}mb']
-        q_delta.long_name = f'Delta of specific humidity (q) between {p2}mb and {p1}mb'
-        q_delta.short_name = name
-
         # Average of virtual temperatures
         tv_avg = (scratch[f'Tv_{p1}mb'] + scratch[f'Tv_{p2}mb']) / 2
         # DeltaZ = (Rd*avg(Tv)*ln(P1/P2)) / g
