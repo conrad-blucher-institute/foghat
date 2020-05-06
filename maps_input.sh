@@ -35,6 +35,10 @@ LOG_FILE="$FOGHAT_LOG_DIR/maps_input-$TODAY-$$.log"
 mkdir -p "$FOGHAT_LOG_DIR"  "$OUTPUT_DIR"
 
 # Ensure (process-specific) local node storage for all temporary files
+if [ -n "$TMPDIR" ]
+then
+    mkdir -p $TMPDIR
+fi
 TMP_DIR=`mktemp -d --suffix=.${TODAY}-maps_input`
 
 # Log brief error messages to notes file (e.g. missing days/data) for
@@ -155,7 +159,7 @@ crop_mur() {
     local output_subdir=`date -d "$when" '+%Y/%Y%j'`
     local dest_path="$OUTPUT_DIR/$output_subdir"
     mkdir -p "$dest_path"
-    local dest_fqpn="$dest_path/mur_${murdate}090000_crop.nc"
+    local dest_fqpn="$dest_path/murs_${murdate}_0000_009_input.nc"
 
     echo "?Cropping $mur_fn" 1>&2
     ncks --no_alphabetize $MUR_NCKS_ARGS "$input_fqpn" -O "$dest_fqpn"
