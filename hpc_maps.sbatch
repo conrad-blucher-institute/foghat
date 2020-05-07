@@ -1,0 +1,42 @@
+#!/bin/bash
+##
+## XXX  The --time of 95 hours should be safe for 1 year of data.  Just shy
+##      of 4 days--the normal queue time limit.
+##
+##      I don't recommend trying to generate more data than that in a
+##      single job.  Based on limited testing it appears the HPC takes
+##      about 530-540 seconds to process a single day (all 4 model
+##      cycles), or ~55 hours for a full year.  I was roughly going for a
+##      double estimate.
+##
+#SBATCH --job-name=fog_maps_input       # Job name
+## XXX  If you want to be notified when your job ends/fails, change the following two lines
+##SBATCH --mail-type=END,FAIL            # Mail events (NONE, BEGIN, END, FAIL, ALL)
+##SBATCH --mail-user=niall.durham@tamucc.edu     # Where to send mail
+#SBATCH --nodes=1                       # Run all processes on a single node
+#SBATCH --ntasks=1                      # Run a single task
+#SBATCH --time=95:00:00                 # Time limit hrs:min:sec
+#SBATCH --output=fog_maps_input_%N_%j.log  # Standard output and error log
+#SBATCH -p normal                       # Partition
+
+# Capture some node environment information in the job log
+for i in pwd  hostname date  w 'free -halt' 'ps au'
+do
+    $i
+    echo '-- 8< --'
+done
+
+# Setup hpc software environment
+module load nco/gcc7/4.9.2
+module load wgrib2/gcc7/2.0.9
+module load python3/gcc7/3.7.4
+
+# Load environment-specific configuration
+# XXX  I'm Assuming sbatch is being run from foghat git directory
+. etc/foghat_config.sh
+
+# Load python environment
+source $HOME/venv/foghat/bin/activate
+
+$FOGHAT_EXE_DIR/maps_input.sh $1 $2
+
