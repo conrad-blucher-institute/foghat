@@ -34,13 +34,6 @@ LOG_FILE="$FOGHAT_LOG_DIR/maps_input-$TODAY-$$.log"
 
 mkdir -p "$FOGHAT_LOG_DIR"  "$OUTPUT_DIR"
 
-# Ensure (process-specific) local node storage for all temporary files
-if [ -n "$TMPDIR" ]
-then
-    mkdir -p $TMPDIR
-fi
-TMP_DIR=`mktemp -d --suffix=.${TODAY}-maps_input`
-
 # Log brief error messages to notes file (e.g. missing days/data) for
 # NetCDF data consumers
 note() {
@@ -243,6 +236,13 @@ doy2=$((10#$doy2))
 # Sanity checks
 [[ "$year1" -gt "$year2" ]] && echo "?ensure starting date ($year1,$doy1) is before end date ($year2,$doy2)" 1>&2 && usage
 [[ "$year1" -eq "$year2" && "$doy1" -gt "$doy2" ]] && echo  "?ensure starting date ($year1,$doy1) is before end date ($year2,$doy2)" 1>&2 && usage
+
+# Ensure (process-specific) local node storage for all temporary files
+if [ -n "$TMPDIR" ]
+then
+    mkdir -p $TMPDIR
+fi
+TMP_DIR=`mktemp -d --suffix=.${TODAY}-maps_input`
 
 now=`date`
 echo "?generating MapS input data from $1 ($year1, day $doy1) to $2 ($year2, day $doy2) on $now" >>"$LOG_FILE"
