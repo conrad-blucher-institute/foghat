@@ -12,7 +12,7 @@ MUR_NCKS_ARGS='-d lat,25.24,29.0 -d lon,-98.01,-94.25'
 ATMOSPHERIC=':(TMP|RH|UGRD|VGRD|TKE|VVEL):(700|725|750|775|800|825|850|875|900|925|950|975|1000) mb:'
 ABOVE_GROUND=':(TMP|DPT|RH|UGRD|VGRD):(2|10) m above ground:'
 # Surface pressure is only used to calculate derived parameter(s)
-SURFACE=':(FRICV|VIS|PRES):surface:'
+SURFACE=':(FRICV|VIS|PRES|TMP):surface:'
 MATCH_RE="($ATMOSPHERIC|$ABOVE_GROUND|$SURFACE)"
 
 # ---8<---  ---8<---  ---8<---  wgrib2 vars above  ---8<---  ---8<---  ---8<---
@@ -128,8 +128,7 @@ process_day_cycle() {
         echo "?Only saw $count .grb2 file(s) when processing ($year$md, $cycle) grib tarfile, expected $EXPECTED_COUNT.  Skipping model cycle file $tarfile " 1>&2
         note "$when" "($year$md, $cycle) Expected $EXPECTED_COUNT .grb2 files when processing model cycle but only saw $count.  Skipping model cycle"
         # Remove files from temporary directory so we don't fill up disk on errors
-        # TODO  ¿ Add CLI option to _not_ remove files for investigating errors during processing ?
-        rm *.nc *.grb2 2>/dev/null
+        [[ ! $PRESERVE ]] && rm *.nc *.grb2 2>/dev/null
         return
     fi
 
@@ -142,7 +141,7 @@ process_day_cycle() {
     # TODO  ¿ Add CLI option to copy temporary (WIP) NetCDF files ± source [clipped/sorted] .grb2 files into destination directory for verification ?
 
     # Remove files _from_ temporary directory (but not directory itself) before next call
-    rm *.nc *.grb2
+    [[ ! $PRESERVE ]] && rm *.nc *.grb2
 }
 
 crop_mur() {
@@ -184,7 +183,11 @@ seconds2hms () {
 usage () {
     local zero=`basename $0`
     cat <<EndOfUsage 1>&2
-Usage: $zero <start_date> <end_date>
+Usage: $zero [-p] [-c CYCLE] <start_date> <end_date>
+
+Options:
+  -p            Preserve intermediate files (debug only)
+  -c CYCLE      Only calculate model cycle hour CYCLE (0, 6, 12, 18)
 
 E.g., $zero 2018-11-01 2018-11-30
 
@@ -194,8 +197,35 @@ EndOfUsage
     exit
 }
 
+# Parse command line options
+while getopts "c:hp" OPTION; do
+    case $OPTION in
+    c)
+        CYCLE=$OPTARG
+        [[ ! $CYCLE =~ 0|6|12|18 ]] && {
+            echo "Invalid model cycle specified ($OPTARG)"
+            exit 1
+        }
+        ;;
+    h)
+        usage
+        ;;
+    p)
+        PRESERVE=1
+        ;;
+    *)
+        echo "Incorrect option ($OPTION) provided"
+        exit 1
+        ;;
+    esac
+done
+# https://sookocheff.com/post/bash/parsing-bash-script-arguments-with-shopts/
+shift $((OPTIND -1))
 
 [[ -z "$1" || -z "$2" ]] && usage
+
+# If no specific model cycle specified, run all of them
+[[ -n "$CYCLE" ]] || CYCLE="0 6 12 18"
 
 date1=`date -d "$1" '+%Y %j'`
 date2=`date -d "$2" '+%Y %j'`
@@ -235,7 +265,7 @@ do
     if [ ${when:0:4} -eq "$y" ]
     then
         # I'm wary of octal interpretation, even if ireelevant w/ our FH's
-        for cycle in 0 6 12 18
+        for cycle in $CYCLE
         do
             process_day_cycle $when $cycle  2>>"$LOG_FILE"
         done
@@ -260,6 +290,10 @@ elapsed=$(seconds2hms $delta_t)
 echo "?processed $count day(s) of data in $elapsed time ($delta_t seconds)" >>"$LOG_FILE"
 
 # Remove temporary directory (but should already be empty)
-echo "?removing temporary directory, $TMP_DIR" >>"$LOG_FILE"
-# TODO  ¿ Add CLI option to _not_ remove files for investigating errors during processing?
-rm -r $TMP_DIR
+if [[ ! $PRESERVE ]]
+then
+    echo "?removing temporary directory, $TMP_DIR" >>"$LOG_FILE"
+    rm -r $TMP_DIR
+else
+    echo "(*) →  leaving files in temporary directory $TMP_DIR  ← (*)" >>"$LOG_FILE"
+fi

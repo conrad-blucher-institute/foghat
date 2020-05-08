@@ -33,7 +33,7 @@ while (<>) {
 }
 
 my @msgs_out = ();
-push @msgs_out, qw( UGRD:10mAG VGRD:10mAG ), layers( qw(UGRD VGRD VVEL TKE) ), 'TMP:2mAG', layers('TMP', 'RH'), 'DPT:2mAG', 'FRICV:surface', 'VIS:surface', 'RH:2mAG', 'PRES:surface';
+push @msgs_out, qw( UGRD:10mAG VGRD:10mAG ), layers( qw(UGRD VGRD VVEL TKE) ), 'TMP:surface', 'TMP:2mAG', layers('TMP', 'RH'), 'DPT:2mAG', 'FRICV:surface', 'VIS:surface', 'RH:2mAG', 'PRES:surface';
 my $count = scalar @msgs_out;
 die "?Inventory count mismatch between input ($features_in) and output ($count), dying horribly...\n" unless ($features_in == $count);
 print map { "$msgs{$_}\n"; } @msgs_out;
