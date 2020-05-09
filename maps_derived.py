@@ -63,7 +63,17 @@ def specific_humidity(nc):
     # Average of virtual temperatures
     tv_avg = (scratch['Tv_1000mb'] + scratch['Tv_surface']) / 2
     # DeltaZ = (Rd*avg(Tv)*ln(P1/P2)) / g
+    # XXX  Where pres_mb == 1000.0, result of np.log() will be 0 | tv_avg == 0 → delta_z is 0
     delta_z =  (287*tv_avg * np.log(pres_mb/1000)) / 9.8
+    zero_count = np.sum(delta_z == 0.0)
+    if zero_count > 0:
+        result = np.where(delta_z == 0.0)
+        print(f'? {zero_count} zero(s) in delta_z array used to calculate dqdz1000sfc in file {nc.filepath()}', file=sys.stderr)
+        coordinates = list(zip(result[0], result[1], result[2]))
+        print(f'? Indice(s) of zero(s) in delta_z array are: {coordinates}', file=sys.stderr)
+        for c in coordinates:
+            print(f'    @{c} ⇒ tv_avg={tv_avg[c]} , pres_mb={pres_mb[c]}', file=sys.stderr)
+        # TODO  Throw exception ?
     # DeltaQ / DeltaZ
     dqdz1000sfc = nc.createVariable('DQDZ1000SFC', 'f', ('time','x','y'))
     dqdz1000sfc[:] = (scratch['Q_1000mb'] - scratch['Q_surface']) / delta_z
@@ -75,7 +85,18 @@ def specific_humidity(nc):
         # Average of virtual temperatures
         tv_avg = (scratch[f'Tv_{p1}mb'] + scratch[f'Tv_{p2}mb']) / 2
         # DeltaZ = (Rd*avg(Tv)*ln(P1/P2)) / g
+        # XXX  Where tv_avg == 0 → delta_z is 0 !
         delta_z = (287*tv_avg * np.log(p1/p2)) / 9.8
+        zero_count = np.sum(delta_z == 0.0)
+        if zero_count > 0:
+            print(f'? {zero_count} zero(s) in delta_z array used to calculate dqdz{p2}{p1} in file {nc.filepath()}', file=sys.stderr)
+            result = np.where(delta_z == 0.0)
+            coordinates = list(zip(result[0], result[1], result[2]))
+            print(f'? Indice(s) of zero(s) in delta_z array are: {coordinates}', file=sys.stderr)
+            for c in coordinates:
+                tv1, tv2 = scratch[f'Tv_{p1}mb'][c], scratch[f'Tv_{p2}mb'][c]
+                print(f'    @{c} ⇒ tv_avg={tv_avg[c]}, Tv_{p1}mb={tv1}, Tv_{p2}mb={tv2}', file=sys.stderr)
+            # TODO  Throw exception ?
         # DeltaQ / DeltaZ
         name = f'DQDZ{p2}{p1}'
         dqdzp2p1 = nc.createVariable(name, 'f', ('time','x','y'))
