@@ -9,11 +9,12 @@ LON_LAT='-98.01:-94.20 25.4:28.85'
 MUR_NCKS_ARGS='-d lat,25.24,29.0 -d lon,-98.01,-94.25'
 
 # Build a single regex w/ all the predictors at all the levels we want
-ATMOSPHERIC=':(TMP|RH|UGRD|VGRD|TKE|VVEL):(700|725|750|775|800|825|850|875|900|925|950|975|1000) mb:'
+ATMOSPHERIC=':(TMP|RH|UGRD|VGRD|TKE|VVEL):(700|725|750|775|800|825|850|875|900|925|950|975) mb:'
 ABOVE_GROUND=':(TMP|DPT|RH|UGRD|VGRD):(2|10) m above ground:'
-# Surface pressure is only used to calculate derived parameter(s)
-SURFACE=':(FRICV|VIS|PRES|TMP):surface:'
-MATCH_RE="($ATMOSPHERIC|$ABOVE_GROUND|$SURFACE)"
+SURFACE=':(FRICV|VIS|TMP):surface:'
+# Mean sea level (pressure) is only used to calculate derived parameter(s)
+UNIQUE=':MSLET:'
+MATCH_RE="($ATMOSPHERIC|$ABOVE_GROUND|$SURFACE|$UNIQUE)"
 
 # ---8<---  ---8<---  ---8<---  wgrib2 vars above  ---8<---  ---8<---  ---8<---
 
@@ -73,8 +74,8 @@ process_grib_file() {
     # Using variables in NetCDF file, add derived variables (in place)
     $FOGHAT_EXE_DIR/maps_derived.py $netcdf
 
-    # Remove pressure at surface (PRES_surface) from NetCDF file, as per Waylon
-    ncks --no_alphabetize -O -x -v PRES_surface $netcdf $final_netcdf
+    # Remove mean sea level pressure (surface pressure)  from NetCDF file, as per waylon
+    ncks --no_alphabetize -O -x -v MSLET_meansealevel $netcdf $final_netcdf
 }
 
 # Process all forecast hours files in a given (date, model cycle) NAM tarfile

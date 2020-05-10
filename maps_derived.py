@@ -14,7 +14,7 @@ def specific_humidity(nc):
     """
     scratch = {}                        # temporary Numpy arrays/layers used for calculations
     # Loop over each desired pressure level (in millibars)
-    for pres in range(700,1000+1,25):
+    for pres in range(700,975+1,25):
         level = f'{pres}mb'             # label for NetCDF variable reference
         # For stauration vapor pressure (es), calculate
         #     temperature in C°
@@ -42,7 +42,7 @@ def specific_humidity(nc):
     # Vapor Pressure (e)
     vap_pres = es*( nc.variables['RH_2maboveground'][:] / 100)
     # Mixing Ratio (mr)
-    pres_mb = nc.variables['PRES_surface'][:] / 100 # Convert Pascals → mbar
+    pres_mb = nc.variables['MSLET_meansealevel'][:] / 100 # Convert Pascals → mbar
     # XXX  Note the pressure in this calculation is gridded/an array, _not_ a scalar
     mr = ( (0.622*vap_pres)/(pres_mb - vap_pres) )
     # Specific Humidity (q)
@@ -61,32 +61,33 @@ def specific_humidity(nc):
     # Add DeltaQ/DeltaZ variables to NetCDF dataset/file
 
     # Average of virtual temperatures
-    tv_avg = (scratch['Tv_1000mb'] + scratch['Tv_surface']) / 2
+    tv_avg = (scratch['Tv_975mb'] + scratch['Tv_surface']) / 2
     # DeltaZ = (Rd*avg(Tv)*ln(P1/P2)) / g
-    # XXX  Where pres_mb == 1000.0, result of np.log() will be 0 | tv_avg == 0 → delta_z is 0
-    delta_z =  (287*tv_avg * np.log(pres_mb/1000)) / 9.8
+    # XXX  _If_ pres_mb == 975.0, result of np.log() will be 0 | tv_avg == 0 → delta_z is 0
+    # Waylon: Surface pressure shouldn't reach 975mb except maybe during hurricanes
+    delta_z =  (287.0*tv_avg * np.log(pres_mb/975.0)) / 9.8
     zero_count = np.sum(delta_z == 0.0)
     if zero_count > 0:
         result = np.where(delta_z == 0.0)
-        print(f'? {zero_count} zero(s) in delta_z array used to calculate dqdz1000sfc in file {nc.filepath()}', file=sys.stderr)
+        print(f'? {zero_count} zero(s) in delta_z array used to calculate dqdz975sfc in file {nc.filepath()}', file=sys.stderr)
         coordinates = list(zip(result[0], result[1], result[2]))
         print(f'? Indice(s) of zero(s) in delta_z array are: {coordinates}', file=sys.stderr)
         for c in coordinates:
             print(f'    @{c} ⇒ tv_avg={tv_avg[c]} , pres_mb={pres_mb[c]}', file=sys.stderr)
         # TODO  Throw exception ?
     # DeltaQ / DeltaZ
-    dqdz1000sfc = nc.createVariable('DQDZ1000SFC', 'f', ('time','x','y'))
-    dqdz1000sfc[:] = (scratch['Q_1000mb'] - scratch['Q_surface']) / delta_z
-    dqdz1000sfc.long_name = f'DeltaQ over DeltaZ between 1000mb and surface'
-    dqdz1000sfc.short_name = 'DQDZ1000SFC'
+    dqdz975sfc = nc.createVariable('DQDZ975SFC', 'f', ('time','x','y'))
+    dqdz975sfc[:] = (scratch['Q_975mb'] - scratch['Q_surface']) / delta_z
+    dqdz975sfc.long_name = f'DeltaQ over DeltaZ between 975mb and surface'
+    dqdz975sfc.short_name = 'DQDZ975SFC'
 
-    for p1 in range(1000, 725-1, -25):
+    for p1 in range(975, 725-1, -25):
         p2 = p1 - 25                    # lower pressure → higher elevation
         # Average of virtual temperatures
         tv_avg = (scratch[f'Tv_{p1}mb'] + scratch[f'Tv_{p2}mb']) / 2
         # DeltaZ = (Rd*avg(Tv)*ln(P1/P2)) / g
         # XXX  Where tv_avg == 0 → delta_z is 0 !
-        delta_z = (287*tv_avg * np.log(p1/p2)) / 9.8
+        delta_z = (287.0*tv_avg * np.log(p1/p2)) / 9.8
         zero_count = np.sum(delta_z == 0.0)
         if zero_count > 0:
             print(f'? {zero_count} zero(s) in delta_z array used to calculate dqdz{p2}{p1} in file {nc.filepath()}', file=sys.stderr)
@@ -161,9 +162,9 @@ def process_file(filename):
         # Add DateVal (sine of Julian day) to dataset
         dateval(nc)
 
-        # XXX  Can't remove pressure at surface (PRES_surface) from
-        #      dataset here as NetCDF-API doesn't support deletion from a
-        #      NetCDF dataset.  Do w/ CLI tool ncks
+        # XXX  Can't remove "surface" pressure (MSLET) from dataset here
+        #      as NetCDF-API doesn't support deletion from a NetCDF
+        #      dataset.  Do w/ CLI tool ncks
 
         # Add modified message to NetCDF file history
         add_cli_history(nc)
