@@ -30,8 +30,8 @@ def specific_humidity(nc):
         # Specific Humidity (q)
         q = mr / (1+mr)
         scratch[f'Q_{level}'] = q
-        # Virtual temperature
-        tv = (1 + 0.61*mr)*temp_c
+        # Virtual temperature (in °K)
+        tv = (1 + 0.61*mr)*(temp_c + 237.15)
         scratch[f'Tv_{level}'] = tv
     # Calculate Specific Humidity (q) for the "surface"
     temp_c = nc.variables['TMP_2maboveground'][:] - 273.15
@@ -48,8 +48,8 @@ def specific_humidity(nc):
     # Specific Humidity (q)
     q = mr / (1+mr)
     scratch['Q_surface'] = q
-    # Virtual temperature
-    tv = (1 + 0.61*mr)*temp_c
+    # Virtual temperature (in °K)
+    tv = (1 + 0.61*mr)*(temp_c + 237.15)
     scratch['Tv_surface'] = tv
 
     # We want Specific Humidity (q) at surface in dataset, I believe
