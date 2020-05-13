@@ -14,7 +14,7 @@ def specific_humidity(nc):
     """
     scratch = {}                        # temporary Numpy arrays/layers used for calculations
     # Loop over each desired pressure level (in millibars)
-    for pres in range(700,975+1,25):
+    for pres in range(975, 700-1, -25):
         level = f'{pres}mb'             # label for NetCDF variable reference
         # For stauration vapor pressure (es), calculate
         #     temperature in C°
@@ -30,6 +30,13 @@ def specific_humidity(nc):
         # Specific Humidity (q)
         q = mr / (1+mr)
         scratch[f'Q_{level}'] = q
+        # Put specific humidity values in the dataset as per Waylon
+        name = f'Q_{level}'
+        qanon = nc.createVariable(name, 'f', ('time','x','y'))
+        qanon[:] = q
+        qanon.long_name = f'Specific humidity (q) at {level}mb'
+        qanon.short_name = name
+
         # Virtual temperature (in °K)
         tv = (1 + 0.61*mr)*(temp_c + 237.15)
         scratch[f'Tv_{level}'] = tv
