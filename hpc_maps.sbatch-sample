@@ -38,5 +38,7 @@ module load python3/gcc7/3.7.4
 # Load python environment
 source $HOME/venv/foghat/bin/activate
 
-$FOGHAT_EXE_DIR/maps_input.sh $*
+# Prefix command w/ srun so we can monitor it w/ sstat
+# https://hpc.tamucc.edu/forum/viewtopic.php?t=5
+srun $FOGHAT_EXE_DIR/maps_input.sh $*
 
