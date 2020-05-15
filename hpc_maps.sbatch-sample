@@ -26,6 +26,7 @@ do
     $i
     echo '-- 8< --'
 done
+echo "CLI arguments: $*"
 
 # Setup hpc software environment
 module load nco/gcc7/4.9.2
