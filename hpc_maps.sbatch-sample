@@ -26,7 +26,11 @@ do
     $i
     echo '-- 8< --'
 done
+# Dump SLURM-related environment variables
+env | grep -P '^\w*SLURM\w*='
+echo '-- 8< --'
 echo "CLI arguments: $*"
+echo '-- 8< --'
 
 # Setup hpc software environment
 module load nco/gcc7/4.9.2

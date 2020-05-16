@@ -19,6 +19,9 @@ do
     $i
     echo '-- 8< --'
 done
+# Dump SLURM-related environment variables
+env | grep -P '^\w*SLURM\w*='
+echo '-- 8< --'
 echo "CLI arguments: $*"
 echo '-- 8< --'
 
