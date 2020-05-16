@@ -1,0 +1,61 @@
+#!/bin/bash
+##
+##  Takes between 60-95 minutes to make a tarball out of one year of data
+##
+#SBATCH --job-name=maps_tar             # Job name
+## XXX  If you want to be notified when your job ends/fails, change the following two lines
+##SBATCH --mail-type=END,FAIL            # Mail events (NONE, BEGIN, END, FAIL, ALL)
+##SBATCH --mail-user=niall.durham@tamucc.edu     # Where to send mail
+#SBATCH --nodes=1                       # Run all processes on a single node
+#SBATCH --ntasks=1                      # Run a single task
+#SBATCH --cpus-per-task=20              # CPUs (cores) allocated per task
+#SBATCH --time=04:20:00                 # Time limit hrs:min:sec
+#SBATCH --output=/work/TANN/%u/jobs/maps_tarball_%N_%j.log  # Standard output and error log
+#SBATCH -p normal                       # Partition
+
+# Capture some node environment information in the job log
+for i in pwd  hostname date  w 'free -halt' 'ps au' 'df -h' 'tar --version'
+do
+    $i
+    echo '-- 8< --'
+done
+echo "CLI arguments: $*"
+echo '-- 8< --'
+
+# Load environment-specific configuration
+# XXX  I'm Assuming sbatch is being run from foghat git directory
+. etc/foghat_config.sh
+
+# Assume CLI argument (year) has been vetted/filtered already
+year=$1
+TODAY=`date -u '+%Y%m%d'`
+TMP_FILE=`mktemp --suffix="${TODAY}-maps.tgz"`
+base=$FOGHAT_INPUT_DIR
+FINAL_TGZ=$base/fog-maps-input-${year}.tgz
+
+# Kluge rename in case destination tarball already exists
+if [[ -r $FINAL_TGZ ]]
+then
+    # This supposed to be a Q&D script :|
+    # XXX  following mktemp doesn't work on the nodes (always includes /tmp/) even though it works on hpcm :\
+    #RAND_SUFFIX=`mktemp --tmpdir='' -t -u XXXXXXX`
+    RAND_SUFFIX=`echo $((RANDOM + RANDOM + RANDOM))`
+    RENAME_TGZ=${FINAL_TGZ}_${RAND_SUFFIX}
+    echo "?Existing destination tarball file w/ name $FINAL_TGZ, renaming to $RENAME_TGZ"
+    mv $FINAL_TGZ $RENAME_TGZ
+fi
+
+cd $base
+# Using relative paths so tarball doesn't unpack w/ FQPN
+DATA_DIR=fog-maps/$year
+NOTES_FILE=fog-maps/processing-notes-${year}.txt
+echo "?Creating tarball from $year data in file $TMP_FILE"
+srun tar czf $TMP_FILE $NOTES_FILE $DATA_DIR
+echo "?Copying tarball from $TMP_FILE to $FINAL_TGZ"
+srun cp $TMP_FILE $FINAL_TGZ
+
+cd -
+
+# Clean up after yourself
+echo "?Removing temporary file $TMP_FILE"
+srun rm $TMP_FILE
