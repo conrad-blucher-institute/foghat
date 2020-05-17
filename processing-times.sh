@@ -13,9 +13,7 @@ function histo()
     lower=$((min - (min % binsize)))
     upper=$((max + (binsize - (max % binsize) )))
     bins=$(((upper - lower) / binsize))
-    echo "[ Saw min=$min, max=$max, want binsize=$binsize → lower=$lower, upper=$upper, bins=$bins ]"
-
-    n=`wc -l $file | grep -oP '^\d+'`
+    echo "Saw min=$min, max=$max, want binsize=$binsize → lower=$lower, upper=$upper, bins=$bins"
 
     cat $file | gsl-histogram $lower $upper $bins
 }
@@ -35,27 +33,28 @@ do
     echo "# Processing log file $i"
     # Total number of (days, model cycles) processed
     grep -Po '\d+ seconds$' $i | sed 's/ seconds$//;' >$TMPFILE
+    n=`wc -l $TMPFILE | grep -oP '^\d+'`
 
-    echo "## Model-cycle processing times (total)"
+    echo "## Model-cycle processing times ($n total)"
     histo $TMPFILE 20
     echo ""
     stats $TMPFILE
-    echo -e "----\n"
+    echo ""
 
-    n=`wc -l $TMPFILE | grep -oP '^\d+'`
     mid=$((n / 2))
 
     head --lines=$mid $TMPFILE >$HALF
-    echo "## Model-cycle processing times (first half)"
+    echo "## 1H Model-cycle processing times [0, $mid]"
     histo $HALF 20
     echo ""
     stats $HALF
-    echo -e "----\n"
+    echo ""
 
     tail --lines="+$mid" $TMPFILE >$HALF
-    echo "## Model-cycle processing times (second half)"
+    echo "## 2H Model-cycle processing times [$mid, $n]"
     histo $HALF 20
     stats $HALF
+    echo -e "\n-- 8< --\n"
 done
 
 rm $TMPFILE $TMPFILE2
