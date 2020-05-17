@@ -21,9 +21,9 @@ fi
 
 echo "?Queueing data processing jobs for data year $year"
 j1=$(getjobid sbatch --job-name "fogm${year:2}00" hpc_maps.sbatch -c 0  $year-01-01 $year-12-31)
-j2=$(getjobid sbatch --job-name "fogm${year:2}06" hpc_maps.sbatch -c 6  $year-01-01 $year-12-31)
-j3=$(getjobid sbatch --job-name "fogm${year:2}12" hpc_maps.sbatch -c 12 $year-01-01 $year-12-31)
-j4=$(getjobid sbatch --job-name "fogm${year:2}18" hpc_maps.sbatch -c 18 $year-01-01 $year-12-31)
+j2=$(getjobid sbatch --job-name "fogm${year:2}06" hpc_maps.sbatch -n -c 6  $year-01-01 $year-12-31)
+j3=$(getjobid sbatch --job-name "fogm${year:2}12" hpc_maps.sbatch -n -c 12 $year-01-01 $year-12-31)
+j4=$(getjobid sbatch --job-name "fogm${year:2}18" hpc_maps.sbatch -n -c 18 $year-01-01 $year-12-31)
 
 echo "?Data processing job IDs: $j1, $j2, $j3, $j4"
 RULE=afterok:$j1:$j2:$j3:$j4
