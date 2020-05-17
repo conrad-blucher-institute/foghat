@@ -121,8 +121,6 @@ process_day_cycle() {
     then
         echo "?Only saw $count .grb2 file(s) when processing ($year$md, $cycle) grib tarfile, expected $EXPECTED_COUNT.  Skipping model cycle file $tarfile " 1>&2
         note "$when" "($year$md, $cycle) Expected $EXPECTED_COUNT .grb2 files when processing model cycle but only saw $count.  Skipping model cycle"
-        # Remove files from temporary directory so we don't fill up disk on errors
-        [[ ! $PRESERVE ]] && rm *.nc *.grb2 2>/dev/null
         return
     fi
 
@@ -133,9 +131,6 @@ process_day_cycle() {
     cp maps_$year*_input.nc "$dest_path"
 
     # TODO  ¿ Add CLI option to copy temporary (WIP) NetCDF files ± source [clipped/sorted] .grb2 files into destination directory for verification ?
-
-    # Remove files _from_ temporary directory (but not directory itself) before next call
-    [[ ! $PRESERVE ]] && rm *.nc *.grb2
 }
 
 crop_mur() {
@@ -154,6 +149,7 @@ crop_mur() {
     mkdir -p "$dest_path"
     local dest_fqpn="$dest_path/murs_${murdate}_0000_009_input.nc"
 
+    # TODO ¿ Write output cropped MUR to local storage ($TMP_DIR?) _then_ copy to destination?
     echo "?Cropping $mur_fn" 1>&2
     ncks --no_alphabetize $MUR_NCKS_ARGS "$input_fqpn" -O "$dest_fqpn"
 }
@@ -180,6 +176,7 @@ usage () {
 Usage: $zero [-p] [-c CYCLE] <start_date> <end_date>
 
 Options:
+  -n            No MUR SST cropping
   -p            Preserve intermediate files (debug only)
   -c CYCLE      Only calculate model cycle hour CYCLE (0, 6, 12, 18)
 
@@ -191,8 +188,11 @@ EndOfUsage
     exit
 }
 
+# Default is to crop MUR SST files
+MUR_CROP=1
+
 # Parse command line options
-while getopts "c:hp" OPTION; do
+while getopts "c:hnp" OPTION; do
     case $OPTION in
     c)
         CYCLE=$OPTARG
@@ -203,6 +203,9 @@ while getopts "c:hp" OPTION; do
         ;;
     h)
         usage
+        ;;
+    n)
+        MUR_CROP=
         ;;
     p)
         PRESERVE=1
@@ -270,8 +273,15 @@ do
         do
             process_day_cycle $when $cycle  2>>"$LOG_FILE"
         done
-        # Crop MUR SST file for given day as well
-        crop_mur $when 2>>"$LOG_FILE"
+
+        if [[ $MUR_CROP ]]
+        then
+            # Crop MUR SST file for given day as well
+            crop_mur $when 2>>"$LOG_FILE"
+        fi
+
+        # Remove files from temporary directory so we don't fill up disk
+        [[ ! $PRESERVE ]] && rm *.nc *.grb2 2>/dev/null
     fi
 
     d=$((d + 1))
