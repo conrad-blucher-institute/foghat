@@ -1,12 +1,12 @@
 #!/bin/bash
 ##
-## XXX  The --time of 18 hours should be safe upper limit (mean + 3σ) for 1
+## XXX  The --time of 18 hours _should_ be safe upper limit (mean + 3σ) for 1
 ##      model cycle of 1 year of data.
 ##
-##      For a full year, just multiply by 4 (72 hours).
+##      *Edit*: 18 hours not enough not based on my experience 2020-05-16
 ##
 ##      I don't recommend trying to generate more data than a full year
-##      (all model cycles) in a single job b/c it would exceed the
+##      (all model cycles) in a single job b/c it could well exceed the
 ##      maximum HPC job time limit (4 days).
 ##
 #SBATCH --job-name=fog_maps_input       # Job name
@@ -16,7 +16,7 @@
 #SBATCH --nodes=1                       # Run all processes on a single node
 #SBATCH --ntasks=1                      # Run a single task
 #SBATCH --cpus-per-task=20              # CPUs (cores) allocated per task
-#SBATCH --time=18:00:00                 # Time limit hrs:min:sec
+#SBATCH --time=48:00:00                 # Time limit hrs:min:sec
 #SBATCH --output=/work/TANN/%u/jobs/fog_maps_input_%N_%j.log  # Standard output and error log
 #SBATCH -p normal                       # Partition
 

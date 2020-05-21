@@ -9,7 +9,7 @@
 #SBATCH --nodes=1                       # Run all processes on a single node
 #SBATCH --ntasks=1                      # Run a single task
 #SBATCH --cpus-per-task=20              # CPUs (cores) allocated per task
-#SBATCH --time=04:20:00                 # Time limit hrs:min:sec
+#SBATCH --time=08:00:00                 # Time limit hrs:min:sec
 #SBATCH --output=/work/TANN/%u/jobs/maps_tarball_%N_%j.log  # Standard output and error log
 #SBATCH -p normal                       # Partition
 
