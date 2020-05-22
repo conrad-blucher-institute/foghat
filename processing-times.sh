@@ -28,33 +28,32 @@ function stats()
 
 TMPFILE=`mktemp`
 HALF=`mktemp`
-for i in $*
-do
-    echo "# Processing log file $i"
-    # Total number of (days, model cycles) processed
-    grep -Po '\d+ seconds$' $i | sed 's/ seconds$//;' >$TMPFILE
-    n=`wc -l $TMPFILE | grep -oP '^\d+'`
+files=$*
+echo "# Processing log file(s) $files"
+# Total number of (days, model cycles) processed
+grep -hPo '\d+ seconds$' $files | sed 's/ seconds$//;' >$TMPFILE
+n=`wc -l $TMPFILE | grep -oP '^\d+'`
 
-    echo "## Model-cycle processing times ($n total)"
-    histo $TMPFILE 20
-    echo ""
-    stats $TMPFILE
-    echo ""
+echo "## Model-cycle processing times ($n total)"
+histo $TMPFILE 20
+echo ""
+stats $TMPFILE
+echo ""
 
-    mid=$((n / 2))
+mid=$((n / 2))
 
-    head --lines=$mid $TMPFILE >$HALF
-    echo "## 1H Model-cycle processing times [0, $mid]"
-    histo $HALF 20
-    echo ""
-    stats $HALF
-    echo ""
+head --lines=$mid $TMPFILE >$HALF
+echo "## 1H Model-cycle processing times [1, $mid]"
+histo $HALF 20
+echo ""
+stats $HALF
+echo ""
 
-    tail --lines="+$mid" $TMPFILE >$HALF
-    echo "## 2H Model-cycle processing times [$mid, $n]"
-    histo $HALF 20
-    stats $HALF
-    echo -e "\n-- 8< --\n"
-done
+mid=$((mid + 1))                        # avoid overlap
+tail --lines="+$mid" $TMPFILE >$HALF
+echo "## 2H Model-cycle processing times [$mid, $n]"
+histo $HALF 20
+stats $HALF
+echo -e "\n-- 8< --\n"
 
 rm $TMPFILE $TMPFILE2

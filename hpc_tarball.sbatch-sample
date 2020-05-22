@@ -1,6 +1,6 @@
 #!/bin/bash
 ##
-##  Takes between 60-95 minutes to make a tarball out of one year of data
+##  Takes between 60-95 minutes to make a tarball out of one year of data (on a node)
 ##
 #SBATCH --job-name=maps_tar             # Job name
 ## XXX  If you want to be notified when your job ends/fails, change the following two lines
@@ -29,6 +29,9 @@ echo '-- 8< --'
 # XXX  I'm Assuming sbatch is being run from foghat git directory
 . etc/foghat_config.sh
 
+# Track elapsed time of job (write in job file, at least)
+start_t=`date '+%s'`
+
 # Assume CLI argument (year) has been vetted/filtered already
 year=$1
 TODAY=`date -u '+%Y%m%d'`
@@ -48,6 +51,7 @@ then
     mv $FINAL_TGZ $RENAME_TGZ
 fi
 
+echo "?Changing to directory $base"
 cd $base
 # Using relative paths so tarball doesn't unpack w/ FQPN
 DATA_DIR=fog-maps/$year
@@ -62,3 +66,6 @@ cd -
 # Clean up after yourself
 echo "?Removing temporary file $TMP_FILE"
 srun rm $TMP_FILE
+
+delta_t=$((`date '+%s'` - start_t))
+echo "?Creation of tarball $FINAL_TGZ completed in $delta_t seconds"
