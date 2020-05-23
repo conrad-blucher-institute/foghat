@@ -25,6 +25,23 @@ function stats()
     awk '{sum+=$1; sumsq+=$1*$1} END { mean=sum/NR; stddev=sqrt(sumsq/NR - (sum/NR)**2); print "mean "mean," stddev "stddev; }' $file
 }
 
+# Defaults
+BINSIZE=20
+
+# Parse command line options
+while getopts "b:" OPTION; do
+    case $OPTION in
+    b)
+        BINSIZE=$OPTARG
+        ;;
+    *)
+        echo "Incorrect option ($OPTION) provided"
+        exit 1
+        ;;
+    esac
+done
+# https://sookocheff.com/post/bash/parsing-bash-script-arguments-with-shopts/
+shift $((OPTIND -1))
 
 TMPFILE=`mktemp`
 HALF=`mktemp`
@@ -35,7 +52,7 @@ grep -hPo '\d+ seconds$' $files | sed 's/ seconds$//;' >$TMPFILE
 n=`wc -l $TMPFILE | grep -oP '^\d+'`
 
 echo "## Model-cycle processing times ($n total)"
-histo $TMPFILE 20
+histo $TMPFILE $BINSIZE
 echo ""
 stats $TMPFILE
 echo ""
@@ -44,7 +61,7 @@ mid=$((n / 2))
 
 head --lines=$mid $TMPFILE >$HALF
 echo "## 1H Model-cycle processing times [1, $mid]"
-histo $HALF 20
+histo $HALF $BINSIZE
 echo ""
 stats $HALF
 echo ""
@@ -52,7 +69,7 @@ echo ""
 mid=$((mid + 1))                        # avoid overlap
 tail --lines="+$mid" $TMPFILE >$HALF
 echo "## 2H Model-cycle processing times [$mid, $n]"
-histo $HALF 20
+histo $HALF $BINSIZE
 stats $HALF
 echo -e "\n-- 8< --\n"
 
