@@ -55,10 +55,10 @@ process_grib_file() {
     local final_netcdf=${noext}_input.nc
 
     # Clip out the variables and levels we want w/in the desired bounding box
-    wgrib2 $filename -set_grib_type c2 -match "$MATCH_RE" -small_grib $LON_LAT $unsorted >/dev/null
+    wgrib2 $FOGHAT_WGRIB_OPTS $filename -set_grib_type c2 -match "$MATCH_RE" -small_grib $LON_LAT $unsorted >/dev/null
 
     # Reorder grib2 variables [predictors] as noted in Waylon's document
-    wgrib2 $unsorted | $FOGHAT_EXE_DIR/grib2_inv_reorder.pl | wgrib2 -i $unsorted -set_grib_type c2 -grib_out $sorted >/dev/null
+    wgrib2 $FOGHAT_WGRIB_OPTS $unsorted | $FOGHAT_EXE_DIR/grib2_inv_reorder.pl | wgrib2 $FOGHAT_WGRIB_OPTS -i $unsorted -set_grib_type c2 -grib_out $sorted >/dev/null
 
     # Make sure temporary GRIB file exists _and_ has content before continuing
     local size=`stat -c '%s' $sorted 2>/dev/null || echo 0`
@@ -69,7 +69,7 @@ process_grib_file() {
     fi
 
     # Convert to NetCDF
-    wgrib2 $sorted -netcdf $netcdf >/dev/null
+    wgrib2 $FOGHAT_WGRIB_OPTS $sorted -netcdf $netcdf >/dev/null
 
     # Using variables in NetCDF file, add derived variables (in place)
     $FOGHAT_EXE_DIR/maps_derived.py $netcdf
