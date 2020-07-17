@@ -42,10 +42,17 @@ for v in ('FOGHAT_IMAP_HOST', 'FOGHAT_IMAP_USER', 'FOGHAT_IMAP_PASSWD', 'FOGHAT_
 logging.Formatter.converter = time.gmtime  # log message times in GMT/UTC
 host = platform.uname().node            # cross-platform hostname
 logging_kwargs = dict(format='#%(asctime)s {0} {1}[{2}] %(levelname)s:%(message)s'.format(host, os.path.basename(sys.argv[0]), os.getpid()), datefmt='%Y-%m-%dT%H:%M:%SZ')
-if logger_openfile:
-    logging_kwargs['filename'] = '{}/ncei_email-{}.log'.format(env('FOGHAT_LOG_DIR'), time.strftime("%Y%m%d", time.gmtime()))
-    logging_kwargs['filemode'] = 'a'
-logging.basicConfig(**logging_kwargs)
+logfn = '{}/ncei_email-{}.log'.format(env('FOGHAT_LOG_DIR'), time.strftime("%Y%m%d", time.gmtime()))
+
+try:
+    if logger_openfile:
+        logging_kwargs['filename'] = logfn
+        logging_kwargs['filemode'] = 'a'
+    logging.basicConfig(**logging_kwargs)
+except OSError as e:
+    print(e, file=sys.stderr)
+    print("Error when trying to setup logger object, is HPC storage ({}) offline/disconnected?  Giving up".format(env('FOGHAT_LOG_DIR')), file=sys.stderr)
+    exit(1)
 
 logger = logging.getLogger(__name__)
 #logger.setLevel(logging.INFO)
