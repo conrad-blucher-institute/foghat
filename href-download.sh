@@ -12,6 +12,15 @@ then
     exit
 fi
 
+# Kluge check for stale NFS filehandles before processing
+# This is an issue when HPC storage is taken offline for maintenance and occasionally at other times
+if [[ -n `ls $FOGHAT_LOG_DIR  $FOGHAT_ARCHIVE_DIR 2>&1 | grep 'Stale file handle'` ]]
+then
+    echo "¿ Is HPC research storage offline ?" 1>&2
+    echo "?Stale file handle at $FOGHAT_LOG_DIR and/or $FOGHAT_ARCHIVE_DIR, giving up" 1>&2
+    exit 1
+fi
+
 ARCHIVE_DIR=$FOGHAT_ARCHIVE_DIR/nomads-href
 
 # The HREF archive has yesterday and today's files available, so try
