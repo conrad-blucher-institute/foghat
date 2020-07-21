@@ -32,11 +32,21 @@ cleanup_href_directory() {
     popd >/dev/null
 }
 
+# How far back to go for cleanup
+start_date=$1
+[ -z "$start_date" ] && start_date='30 days ago'
 
 # What range of archive date directories should we process?
-first=`date -d '30 days ago' '+%Y%m%d'`
+first=`date -d "$start_date" '+%Y%m%d'`
 last=`date -d '3 days ago' '+%Y%m%d'`
 
+if [ -z "$first" ]
+then
+    echo "?No starting date \"$first\".  Was the provided start date (\"$start_date\") valid? ?" 2>&1
+    exit 1
+fi
+
+echo "Cleaning up HREF directories between $first and $last."
 pushd $PWD >/dev/null
 cd $ARCHIVE_DIR
 for i in *
