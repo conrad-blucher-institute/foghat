@@ -55,7 +55,7 @@ do
     to_dir="$HREF_ARCHIVE_DIR/$onlydate"
     if [[ -d "$to_dir" ]]
     then
-        echo "?Destination folder ($to_dir) already exists.  Will *NOT* replace with $from_dir.  Skipping"
+        echo "?Destination folder ($to_dir) already exists.  Will *NOT* replace with $from_dir.  Skipping" 1>&2
     else
         mv "$HREF_ARCHIVE_DIR/$dirname" "$to_dir"
         # Rename files within new subdirectory (e.g. 20171201) to include date.
