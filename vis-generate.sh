@@ -53,17 +53,10 @@ process_grib_file() {
     fi
 
     local unsorted=${rename}_raw.grb2
-    #local sorted=${noext}_sorted.grb2
     local netcdf=${rename}_check.nc
-    #local final_netcdf=${noext}_input.nc
 
     # Clip out the variables and levels we want w/in the desired bounding box
     wgrib2 $FOGHAT_WGRIB_OPTS $filename -set_grib_type c2 -match "$MATCH_RE" -small_grib $LON_LAT $unsorted >/dev/null
-
-    # TODO  Have to do something here so that all :VIS:surface: probabilities aren't compressed into a single parameter :(
-
-    # Reorder grib2 variables [predictors] as noted in Waylon's document
-    #wgrib2 $FOGHAT_WGRIB_OPTS $unsorted | $FOGHAT_EXE_DIR/grib2_inv_reorder.pl | wgrib2 $FOGHAT_WGRIB_OPTS -i $unsorted -set_grib_type c2 -grib_out $sorted >/dev/null
 
     # Make sure temporary GRIB file exists _and_ has content before continuing
     local size=`stat -c '%s' $unsorted 2>/dev/null || echo 0`
@@ -74,7 +67,10 @@ process_grib_file() {
     fi
 
     # Convert to NetCDF
-    wgrib2 $FOGHAT_WGRIB_OPTS $unsorted -netcdf $netcdf >/dev/null
+    #
+    # Have to use extended names option (-set_ext_name 1) b/c variable and
+    # level ( :VIS:surface: )  is not unique on its own.
+    wgrib2 -set_ext_name 1 $FOGHAT_WGRIB_OPTS $unsorted -netcdf $netcdf >/dev/null
 }
 
 
@@ -90,8 +86,8 @@ process_day() {
 
     # Process HREF grib files for today
     local count=0
-    for fn in $HREF_ARCHIVE_DIR/$year$md/href.t??z.conus.prob.f??.$year$md.grib2 
-    #for fn in $HREF_ARCHIVE_DIR/$year/$year$md/href.t${mc}z.conus.prob.f??.$year$md.grib2 
+    for fn in $HREF_ARCHIVE_DIR/$year$md/href.t??z.conus.prob.f??.$year$md.grib2
+    #for fn in $HREF_ARCHIVE_DIR/$year/$year$md/href.t${mc}z.conus.prob.f??.$year$md.grib2
     do
         process_grib_file $fn 1>&2
         count=$((count + 1))
@@ -103,9 +99,8 @@ process_day() {
     # Count should be either 72 (0, 12 model cycles) or 144 (0, 6, 12, 18)
     if [[ $count -ne 72 && $count -ne 144 ]]
     then
-        echo "?Only saw $count grib file(s) when processing $year$md NOMADS HREF files, expected 72 or 144.  Skipping day $year$md " 1>&2
-        note "$when" "($year$md) Expected 72 or 144 grib files when processing HREF day $year$md but only saw $count.  Skipping day"
-        return
+        echo "?Only saw $count grib file(s) when processing $year$md NOMADS HREF files, expected 72 or 144." 1>&2
+        note "$when" "($year$md) Expected 72 or 144 grib files when processing HREF day $year$md but only saw $count "
     fi
 
     # Copy resulting visibility files to destination directory for given day
