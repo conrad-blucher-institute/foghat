@@ -74,7 +74,7 @@ process_grib_file() {
     #
     # Have to use extended names option (-set_ext_name 1) b/c variable and
     # level ( :VIS:surface: )  is not unique on its own.
-    wgrib2 -set_ext_name 1 $FOGHAT_WGRIB_OPTS $unsorted -netcdf $netcdf >/dev/null
+    wgrib2 $FOGHAT_WGRIB_OPTS -set_ext_name 1 $unsorted -netcdf $netcdf >/dev/null
 }
 
 process_day_csv()
@@ -89,8 +89,7 @@ process_day_csv()
     for fn in $HREF_ARCHIVE_DIR/$year$md/href.t??z.conus.prob.f??.$year$md.grib2
     #for fn in $HREF_ARCHIVE_DIR/$year/$year$md/href.t${mc}z.conus.prob.f??.$year$md.grib2
     do
-        # TODO  Figure out a good way to manage the multiple header lines this will generate
-        wgrib2 $fn -set_ext_name 1 -match $CSV_MATCH_RE -undefine out-box $CSV_LON_LAT -inv /dev/null -csv -
+        wgrib2 $FOGHAT_WGRIB_OPTS $fn -set_ext_name 1 -match $CSV_MATCH_RE -undefine out-box $CSV_LON_LAT -inv /dev/null -csv -
     done  | $FOGHAT_EXE_DIR/csv_combine.pl >>$TMP_CSV_FILE
 
     # XXX  Kluge count b/c I can't get the loop iteration/file counting
@@ -158,7 +157,9 @@ csv_file_copy() {
     local dest="$OUTPUT_DIR/href-vis-$year"
     [[ -n "$CSV_LABEL" ]] && dest="$dest-$CSV_LABEL"
     dest="${dest}.csv"
-    cp $TMP_CSV_FILE  $dest
+    echo "?[CSV] Copying CSV file for year $year to $dest" 1>&2
+    # Remove the extra/redundant header lines b/c we only process a day at a time
+    sed -r '2,${/^model_cycle/d};' $TMP_CSV_FILE >$dest
     rm $TMP_CSV_FILE
     TMP_CSV_FILE=`mktemp --suffix=.${TODAY}-href_vis_csv`
 }
@@ -307,7 +308,7 @@ do
     if (( d > 366 ))
     then                                # new year trigger
         # One CSV file per year, if appropriate
-        [[ $GENERATE_CSV ]] && csv_file_copy $y
+        [[ $GENERATE_CSV ]] && csv_file_copy $y 2>>"$LOG_FILE"
         d=1
         y=$((y + 1))
 
@@ -316,7 +317,7 @@ do
 done
 
 # Copy any remaining CSV file to appropriate year ($y) destination
-[ $GENERATE_CSV ] && csv_file_copy $y
+[ $GENERATE_CSV ] && csv_file_copy $y 2>>"$LOG_FILE"
 
 popd >/dev/null
 
