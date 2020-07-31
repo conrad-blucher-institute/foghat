@@ -87,6 +87,10 @@ while (<>) {
     my %line;
     @line{ qw(model_cycle pred_time field level lon lat value) } = split /,/;
 
+    # Remove 0/n in field name b/c it can vary w/in a given day
+    # (e.g., different forecast hours might have 0/8 or 0/5)
+    $line{field} =~ s~_\d+/\d+"$~~;
+
     # Check line against current cache
     # If different emit cache, clear cache
     if (not cache_match($cache, \%line)) {
