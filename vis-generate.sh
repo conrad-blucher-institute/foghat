@@ -149,18 +149,22 @@ csv_file_copy() {
 
     # If nothing is stored in the temp CSV file, skip
     local size=`stat -c '%s' $TMP_CSV_FILE 2>/dev/null || echo 0`
-    if [[ ! -e "$TMP_CSV_FILE" || $size -le 69 ]]
-    then
-        return
-    fi
+    [[ ! -e "$TMP_CSV_FILE" || $size -le 7 ]] && return
 
-    local dest="$OUTPUT_DIR/href-vis-$year"
+    local dest="$OUTPUT_DIR/href-vis-$year" # destination filename w/o extension
     [[ -n "$CSV_LABEL" ]] && dest="$dest-$CSV_LABEL"
-    dest="${dest}.csv"
+    if [[ -r "$dest.csv" ]]
+    then
+        local failed="$dest.csv"
+        local rand_str=`mktemp -u -t XXXXXXXX | sed -E 's/^\/tmp\///;'`
+        dest="${dest}_${rand_str}"
+        echo "?[CSV] Destination file $failed already exists, will add random suffix" 1>&2
+    fi
+    dest="$dest.csv"
     echo "?[CSV] Copying CSV file for year $year to $dest" 1>&2
     # Remove the extra/redundant header lines b/c we only process a day at a time
     sed -r '2,${/^model_cycle/d};' $TMP_CSV_FILE >$dest
-    rm $TMP_CSV_FILE
+    [[ ! $PRESERVE ]] && rm $TMP_CSV_FILE
     TMP_CSV_FILE=`mktemp --suffix=.${TODAY}-href_vis_csv`
 }
 
@@ -274,7 +278,7 @@ TMP_CSV_FILE=`mktemp --suffix=.${TODAY}-href_vis_csv`
 #[[ $GENERATE_CSV ]] && mkfifo $TMP_CSV_FIFO
 
 now=`date`
-echo "?generating HREF probabilistic [visibility] data from $1 ($year1, day $doy1) to $2 ($year2, day $doy2) on $now" >>"$LOG_FILE"
+echo "?generating $1 HREF probabilistic [visibility] data from $2 ($year1, day $doy1) to $3 ($year2, day $doy2) on $now" >>"$LOG_FILE"
 
 # Track time spent processing _all_ requested days and forecast hours
 start_t=`date '+%s'`
@@ -317,7 +321,7 @@ do
 done
 
 # Copy any remaining CSV file to appropriate year ($y) destination
-[ $GENERATE_CSV ] && csv_file_copy $y 2>>"$LOG_FILE"
+[[ $GENERATE_CSV ]] && csv_file_copy $y 2>>"$LOG_FILE"
 
 popd >/dev/null
 
