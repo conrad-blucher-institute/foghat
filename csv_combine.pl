@@ -77,6 +77,13 @@ while (<>) {
 
     # wgrib2 -csv output field order:
     # model cycle, prediction time, field/variable name, level, lon, lat, value
+    #
+    # "2018-11-05 00:00:00","2018-11-05 04:00:00","VIS.prob_<400.prob_fcst_0/8","surface",-97.0672,27.8191,0
+    unless (m/^"\d{4}-\d\d-\d\d \d\d:\d\d:\d\d"/) {
+        warn "?Unexpected output from wgrib2 《$_ 》\n";
+        next;
+    }
+
     my %line;
     @line{ qw(model_cycle pred_time field level lon lat value) } = split /,/;
 
@@ -91,4 +98,4 @@ while (<>) {
 }
 
 # Dump remaining cache contents
-cache_emit($cache);
+cache_emit($cache) if scalar(keys %{$cache->{var_map}});
