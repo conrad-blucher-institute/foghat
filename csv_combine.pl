@@ -8,6 +8,7 @@ use utf8;
 use 5.010;
 
 use Data::Dumper;
+use Time::Local;
 
 # XXX  Depending on how many times this code is revisted, it might be
 #      worth turning cache and line into an object (w/ Moo).  However,
@@ -52,6 +53,20 @@ sub cache_add
     $cache_href->{var_map}->{$name} = $line_href->{value};
 }
 
+# Convert date string to Unix time (seconds since epoch)
+sub date2sse
+{
+    my ($date) = @_;
+
+    my $sse;                            # seconds since epoch
+    if ( my ($year, $month, $mday, $hour) = ($date =~ m/^"(\d\d\d\d)-(\d\d)-(\d\d) (\d\d):00:00"$/) )
+    {
+        $month--;
+        $sse = timegm(0, 0, $hour, $mday, $month, $year);
+    }
+    return $sse;
+}
+
 # Output cache to stdout as single CSV line
 sub cache_emit
 {
@@ -63,10 +78,19 @@ sub cache_emit
         # XXX  Numeric sort didn't produce my desired ordering (lexical, then numeric ordering), will have to customize further
         #@param_order = sort { $a <=> $b } keys %{$href->{var_map}};
         @param_order = sort keys %{$href->{var_map}};
-        print qq(model_cycle_time,prediction_time,lat,lon,") . join('","', @param_order) . qq("\n);
+        print qq(model_cycle_time,prediction_time,model_cycle,forecast_hour,lat,lon,") . join('","', @param_order) . qq("\n);
     }
+
+    # Hamid needs model cycle and forecast hour in ready-to-consume format
+    my $mc_gmt = date2sse($href->{model_cycle});
+    my $fh_gmt = date2sse($href->{pred_time});
+    my $mc_str = sprintf("%02d", ($mc_gmt % 86400)/3600);
+    my $fh_str = sprintf("%02d", ($fh_gmt - $mc_gmt)/3600);
+    $href->{mc_str} = $mc_str;
+    $href->{fh_str} = $fh_str;
+
     # XXX  Parse/modify cache values before printing?  E.g., separate date, model cycle, forecast hour
-    print join(',', @{$href}{qw(model_cycle pred_time lat lon)}, @{$href->{var_map}}{@param_order}) . "\n";
+    print join(',', @{$href}{qw(model_cycle pred_time mc_str fh_str lat lon)}, @{$href->{var_map}}{@param_order}) . "\n";
 }
 
 
