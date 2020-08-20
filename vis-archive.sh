@@ -5,6 +5,8 @@
 # Looks like he posts two months of data (~8GB) at a time.  Waylon
 # emails me whenever a new data set is made available
 
+PREFIX=${1:-href}
+
 URL='ftp://ftp.emc.ncep.noaa.gov/mmb/WRFtesting/mpyle/vis_tmp/'
 
 if [[ -z "$FOGHAT_BASE" || -z "$FOGHAT_LOG_DIR" || -z "$FOGHAT_ARCHIVE_DIR" ]]
@@ -13,9 +15,9 @@ then
     exit
 fi
 
-ARCHIVE_DIR=$FOGHAT_ARCHIVE_DIR/mpyle-href-vis/latest
+ARCHIVE_DIR=$FOGHAT_ARCHIVE_DIR/mpyle-$PREFIX-vis/latest
 TODAY=`date -u '+%Y%m%d'`
-LOG_FILE="$FOGHAT_LOG_DIR/vis_archive-$TODAY.log"
+LOG_FILE="$FOGHAT_LOG_DIR/mpyle_archive-$TODAY.log"
 
 mkdir -p $FOGHAT_LOG_DIR $ARCHIVE_DIR
 
@@ -24,9 +26,9 @@ mkdir -p $FOGHAT_LOG_DIR $ARCHIVE_DIR
 # Calculate md5sums of all archive files and rename directory as date range
 pushd $PWD
 cd $ARCHIVE_DIR
-first=`ls -1 href.* | cut -c 6-13 | head -1`
-last=` ls -1 href.* | cut -c 6-13 | tail -1`
-/usr/bin/md5sum href.*.tar > href-$first-$last.md5
+first=`ls -1 $PREFIX?* | cut -c 6-13 | head -1`
+last=` ls -1 $PREFIX?* | cut -c 6-13 | tail -1`
+/usr/bin/md5sum $PREXI?*.tar > $PREFIX-$first-$last.md5
 cd ..
 mv $ARCHIVE_DIR "$first-$last"
 popd
