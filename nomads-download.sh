@@ -145,7 +145,6 @@ then
         generate_href_urls $date | download_urls $DEST_PATH $LOG_FILE
         rename_w_date $DEST_PATH >>$LOG_FILE
     done
-
 elif [[ "$MODE" == 'sref' ]]
 then
     LOG_FILE="$FOGHAT_LOG_DIR/nomads-sref-$TODAY.log"
