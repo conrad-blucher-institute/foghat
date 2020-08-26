@@ -93,7 +93,7 @@ rename_w_date() {
     for i in *
     do
         j=`echo $i | sed -r "s/\.(f[0-3][0-9]|prob_3hrly)\.grib2/.\1.${date}.grib2/;"`
-        if [[ ! -e "$j" ]]
+        if [[ "$j" != '*' && ! -e "$j" ]]
         then
             echo "  • Link $i → $j"
             ln $i $j
@@ -155,9 +155,8 @@ then
     daysago3=`date -u '+%Y%m%d' -d '3 days ago'`
     daysago4=`date -u '+%Y%m%d' -d '4 days ago'`
     daysago5=`date -u '+%Y%m%d' -d '5 days ago'`
-    daysago6=`date -u '+%Y%m%d' -d '6 days ago'`
     # 6 days of SREF data are available
-    for date in $daysago6 $daysago5 $daysago4 $daysago3 $daysago2 $YESTERDAY $TODAY
+    for date in $daysago5 $daysago4 $daysago3 $daysago2 $YESTERDAY $TODAY
     do
         year="${date:0:4}"
         DEST_PATH="$ARCHIVE_DIR/$year/$date"
