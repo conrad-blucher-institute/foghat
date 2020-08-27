@@ -1,5 +1,11 @@
 # Download any NOMADS-NOAA HREF updates every hour b/c I don't know exactly when model runs finish
-0 * * * *  . git/foghat/etc/foghat_config.sh  &&  ~/git/foghat/href-download.sh
+0 * * * *  . git/foghat/etc/foghat_config.sh  &&  ~/git/foghat/nomads-download.sh href
+
+# Download NOMADS-NOAA SREF data every hour w/ half-hour offset (to reduce download bandwidth, disk I/O utilization)
+30 * * * *  . git/foghat/etc/foghat_config.sh  &&  ~/git/foghat/nomads-download.sh sref
+
+# Cleanup (remove) non-dated NOMADS files every week
+0 2 * * 7  . git/foghat/etc/foghat_config.sh  &&  ~/git/foghat/nomads-cleanup.sh '14 days ago' >>$FOGHAT_LOG_DIR/nomads-cleanup.log
 
 # Download sport SST archive every 3-4 days.
 # Infrequent b/c no last modified header from server so it downloads _everything_ again
