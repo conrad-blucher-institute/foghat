@@ -1,8 +1,8 @@
-# Download any NOMADS-NOAA HREF updates every hour b/c I don't know exactly when model runs finish
-0 * * * *  . git/foghat/etc/foghat_config.sh  &&  ~/git/foghat/nomads-download.sh href
+# [Try to] download NOMADS-NOAA HREF a few times each day
+0 */4 * * *  . git/foghat/etc/foghat_config.sh  &&  ~/git/foghat/nomads-download.sh href
 
-# Download NOMADS-NOAA SREF data every hour w/ half-hour offset (to reduce download bandwidth, disk I/O utilization)
-30 * * * *  . git/foghat/etc/foghat_config.sh  &&  ~/git/foghat/nomads-download.sh sref
+# [Try to] download NOMADS-NOAA SREF data a few times each day on a half-hour offset (to reduce download bandwidth, disk I/O utilization)
+30 */4 * * *  . git/foghat/etc/foghat_config.sh  &&  ~/git/foghat/nomads-download.sh sref
 
 # Cleanup (remove) non-dated NOMADS files every week
 0 2 * * 7  . git/foghat/etc/foghat_config.sh  &&  ~/git/foghat/nomads-cleanup.sh '14 days ago' >>$FOGHAT_LOG_DIR/nomads-cleanup.log
@@ -13,3 +13,7 @@
 
 # Check for new NAM archive download emails every 10 minutes
 */10 * * * * cd ~/git/foghat && . etc/foghat_config.sh && . ~/venv/foghat/bin/activate && ./ncei_email.py check
+
+# Check total storage file sizes regularly
+# XXX  Have to escape % symbols in date command.  FMI https://serverfault.com/a/84437
+52 14 * * *  . ~/git/foghat/etc/foghat_config.sh && now=`date '+\%Y-\%m-\%dT\%H:\%M:\%S\%:z' ` && du -sm $FOGHAT_ARCHIVE_DIR/* | xargs -n2 echo -e "$now"  | tr ' ' ',' >>$FOGHAT_LOG_DIR/archive-size-log.csv
