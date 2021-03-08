@@ -12,7 +12,7 @@
 #SBATCH -p normal                       # Partition
 
 # Capture some node environment information in the job log
-for i in pwd  hostname date  w 'free -halt' 'ps au' 'df -h'
+for i in pwd  hostname date  w 'free -hlt' 'ps au' 'df -h'
 do
     $i
     echo '-- 8< --'
