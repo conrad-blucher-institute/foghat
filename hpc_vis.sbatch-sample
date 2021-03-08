@@ -1,0 +1,43 @@
+#!/bin/bash
+##
+#SBATCH --job-name=fog_vis_data         # Job name
+## XXX  If you want to be notified when your job ends/fails, change the following two lines
+##SBATCH --mail-type=END,FAIL            # Mail events (NONE, BEGIN, END, FAIL, ALL)
+##SBATCH --mail-user=niall.durham@tamucc.edu     # Where to send mail
+#SBATCH --nodes=1                       # Run all processes on a single node
+#SBATCH --ntasks=1                      # Run a single task
+#SBATCH --cpus-per-task=20              # CPUs (cores) allocated per task
+#SBATCH --time=48:00:00                 # Time limit hrs:min:sec
+#SBATCH --output=/work/TANN/%u/jobs/vis_generate_input_%N_%j.log  # Standard output and error log
+#SBATCH -p normal                       # Partition
+
+# Capture some node environment information in the job log
+for i in pwd  hostname date  w 'free -halt' 'ps au' 'df -h'
+do
+    $i
+    echo '-- 8< --'
+done
+# Dump SLURM-related environment variables
+env | grep -P '^\w*SLURM\w*='
+echo '-- 8< --'
+echo "CLI arguments: $*"
+echo '-- 8< --'
+
+# Setup hpc software environment
+module load nco/gcc7/4.9.2
+module load wgrib2/gcc7/2.0.9
+module load python3/gcc7/3.7.4
+
+# Load environment-specific configuration
+# XXX  I'm Assuming sbatch is being run from foghat git directory
+. etc/foghat_config.sh
+
+# Load python environment
+source $HOME/venv/foghat/bin/activate
+env | grep -P '^FOGHAT\w*='
+echo '-- 8< --'
+
+# Prefix command w/ srun so we can monitor it w/ sstat
+# https://hpc.tamucc.edu/forum/viewtopic.php?t=5
+srun $FOGHAT_EXE_DIR/vis-generate.sh $*
+
