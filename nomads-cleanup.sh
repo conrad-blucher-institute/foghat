@@ -48,7 +48,6 @@ cleanup_sref_directory() {
 
     # Before we change _anything_, make sure we see what we expect
     pushd $PWD >/dev/null
-    echo cd "$dest_path"
     cd "$dest_path"
     local count=`ls -1 sref.t{03,09,15,21}z.pgrb132.prob_3hrly.$date.grib2{,.idx} | wc -l`
     if [[ $count != $dated_files_count ]]
