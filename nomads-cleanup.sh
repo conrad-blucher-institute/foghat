@@ -83,6 +83,10 @@ pushd $PWD >/dev/null
 cd $FOGHAT_ARCHIVE_DIR
 for i in nomads-[sh]ref/*/*
 do
+    # TODO  consolidate and filter out duplicate dates as nomads-sref/*/*
+    #       and nomads-href/*/* will duplicate YYYYMMDD folder names past
+    #       2020 b/c that's when our SREF data feed starts :|
+
     # This _is_ kluge but I've spent too much time on SREF data d/l already :(
     j=`basename $i`                     # just the date (YYYYMMDD)
     if [[ $j > $first && $j < $last ]]
