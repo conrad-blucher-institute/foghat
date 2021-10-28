@@ -13,4 +13,4 @@ export FOGHAT_LOG_DIR=/work/TANN/$USER/logs
 
 # Limit cores used by wgrib2 on HPC b/c it apparently it causes I/O traffic jam (noticeable on hpcc40-44)
 # https://hpc.tamucc.edu/forum/viewtopic.php?f=7&p=934#p932
-export FOGHAT_WGRIB_OPTS="-ncpu 16"
+export FOGHAT_WGRIB_OPTS="-ncpu 2"
