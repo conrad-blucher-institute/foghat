@@ -34,17 +34,16 @@ request_data() {
 
     # Random sleep between requests so we don't look _that_ obvious
     random_sleep
-
     echo "?requesting dataset $dataset, cycle $cycle from $begyear-$begmonth-$begday to $endyear-$endmonth-$endday" >>$LOG_FILE
-    curl -# 'https://www.ncdc.noaa.gov/has/HAS.FileSelect'  \
+    curl -# 'https://www.ncei.noaa.gov/has/HAS.FileSelect'  \
 -H 'User-Agent: Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0'  \
 -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'  \
 -H 'Accept-Language: en-US,en;q=0.5'  \
 --compressed  \
 -H 'Content-Type: application/x-www-form-urlencoded'  \
--H 'Origin: https://www.ncdc.noaa.gov'  \
+-H 'Origin: https://www.ncei.noaa.gov'  \
 -H 'Connection: keep-alive'  \
--H "Referer: https://www.ncdc.noaa.gov/has/HAS.FileAppRouter?datasetname=$dataset&subqueryby=STATION&applname=&outdest=FILE"  \
+-H "Referer: https://www.ncei.noaa.gov/has/HAS.FileAppRouter?datasetname=$dataset&subqueryby=STATION&applname=&outdest=FILE"  \
 -H 'Cookie: has_js=1'  \
 -H 'Upgrade-Insecure-Requests: 1'  \
 -H 'DNT: 1'  \
@@ -72,7 +71,7 @@ EndOfUsage
 [[ -z "$1" ]] && usage
 
 YEAR=$1
-if ((YEAR < 2000 || YEAR > 2021))
+if ((YEAR < 2000 || YEAR > 2022))
 then
     echo "Invalid year $YEAR"
     usage
