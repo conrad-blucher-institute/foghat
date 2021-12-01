@@ -68,13 +68,22 @@ cleanup_sref_directory() {
 start_date=$1
 [[ -z "$start_date" ]] && start_date='30 days ago'
 
+end_date=$2
+[[ -z "$end_date" ]] && end_date='7 days ago'
+
 # What range of archive date directories should we process?
 first=`date -d "$start_date" '+%Y%m%d'`
-last=`date -d '7 days ago' '+%Y%m%d'`
+last=`date -d "$end_date" '+%Y%m%d'`
 
 if [[ -z "$first" ]]
 then
     echo "?No starting date \"$first\".  Was the provided start date (\"$start_date\") valid? ?" 2>&1
+    exit 1
+fi
+
+if [[ -z "$last" ]]
+then
+    echo "?No ending date \"$last\".  Was the provided start date (\"$end_date\") valid? ?" 2>&1
     exit 1
 fi
 
