@@ -25,4 +25,4 @@ export FOGHAT_INPUT_DIR=$FOGHAT_BASE/input
 export FOGHAT_EXE_DIR=$HOME/git/foghat
 
 # Send notification emails to this person (mailx)
-export FOGHAT_NOTIFY_EMAIL='niall.durham@tamucc.edu'
+export FOGHAT_NOTIFY_EMAIL='username@hostname.com'
