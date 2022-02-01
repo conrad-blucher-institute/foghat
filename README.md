@@ -1,7 +1,9 @@
 Fog Prediction System Notes
 ===========================
 
-Download and prepare data for research [and possibly] operational Fog prediction system.
+Download and prepare data for research [Fog prediction system](https://github.com/conrad-blucher-institute/FogNet).
+
+For more information, please visit https://gridftp.tamucc.edu/fognet/
 
 Setup
 -----
