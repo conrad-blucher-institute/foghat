@@ -20,7 +20,7 @@ mkdir -p $FOGHAT_LOG_DIR  $ARCHIVE_DIR
 
 START=`date '+%s'`
 echo "?downloading latest data from $URL" >>$LOG_FILE
-/usr/bin/wget -nv --no-parent -r --load-cookies $FOGHAT_COOKIES --save-cookies $FOGHAT_COOKIES --limit-rate=5m --wait=5 --timestamping --append-output=$LOG_FILE -nd --directory-prefix=$ARCHIVE_DIR  $URL
+/usr/bin/wget -nv --no-parent -r --load-cookies $FOGHAT_COOKIES --save-cookies $FOGHAT_COOKIES $FOGHAT_WGET_OPTIONS --timestamping --append-output=$LOG_FILE -nd --directory-prefix=$ARCHIVE_DIR  $URL
 END=`date '+%s'`
 DELTA=$((END - START))
 printf -v MMSS '%d:%02d' $((delta/60)) $((delta % 60))

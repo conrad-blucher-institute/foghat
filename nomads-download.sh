@@ -70,7 +70,7 @@ download_urls () {
     # Monitor and log time of all downloads
     local start=`date '+%s'`
     echo "?downloading URLs into $dest_path" >>$log_fqpn
-    /usr/bin/wget -nv --no-parent --load-cookies $FOGHAT_COOKIES --save-cookies $FOGHAT_COOKIES --limit-rate=10m --wait=5 --timestamping --append-output=$log_fqpn --directory-prefix=$dest_path --input-file=-
+    /usr/bin/wget -nv --no-parent --load-cookies $FOGHAT_COOKIES --save-cookies $FOGHAT_COOKIES $FOGHAT_WGET_OPTIONS --timestamping --append-output=$log_fqpn --directory-prefix=$dest_path --input-file=-
     local end=`date '+%s'`
     local delta=$((end - start))
     printf -v mmss '%d:%02d' $((delta/60)) $((delta % 60))

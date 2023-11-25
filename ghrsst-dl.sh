@@ -86,7 +86,7 @@ done
 #       I'll have to change up the loop/downloading to do that :\
 
 # Download the files
-/usr/bin/wget -nv --load-cookies $FOGHAT_COOKIES --save-cookies $FOGHAT_COOKIES --limit-rate=5m --wait=5 --timestamping --append-output=$LOG_FILE --directory-prefix=$ARCHIVE_DIR --input-file=$url_file
+/usr/bin/wget -nv --load-cookies $FOGHAT_COOKIES --save-cookies $FOGHAT_COOKIES $FOGHAT_WGET_OPTIONS --timestamping --append-output=$LOG_FILE --directory-prefix=$ARCHIVE_DIR --input-file=$url_file
 
 # Clean up temp file
 rm $url_file

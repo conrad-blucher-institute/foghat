@@ -21,7 +21,7 @@ LOG_FILE="$FOGHAT_LOG_DIR/mpyle_archive-$TODAY.log"
 
 mkdir -p $FOGHAT_LOG_DIR $ARCHIVE_DIR
 
-/usr/bin/wget -nv --no-parent -r --limit-rate=10m --wait=5 --timestamping --append-output=$LOG_FILE -nd --directory-prefix=$ARCHIVE_DIR  $URL
+/usr/bin/wget -nv --no-parent -r $FOGHAT_WGET_OPTIONS --timestamping --append-output=$LOG_FILE -nd --directory-prefix=$ARCHIVE_DIR  $URL
 
 # Calculate md5sums of all archive files and rename directory as date range
 echo "?Calculating MD5 sums of archive files" >>$LOG_FILE
