@@ -9,7 +9,7 @@ export FOGHAT_EXE_DIR=$HOME/git/foghat
 # Additional options for all wget invocations
 # I use this for network bandwidth utilization / server "niceness" and hopefully to not get IP/server banned by NOAA
 # FMI https://www.gnu.org/software/wget/manual/html_node/Download-Options.html
-export FOGHAT_WGET_OPTIONS="--limit-rate=10m --wait=5"
+#export FOGHAT_WGET_OPTIONS="--limit-rate=10m --wait=5"
 
 # Slightly confusing, but where to store generated model input files
 export FOGHAT_INPUT_DIR=/work/TANN/$USER/fog
