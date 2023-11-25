@@ -2,3 +2,6 @@
 .vscode
 *.nc
 *.sbatch
+
+# Editor debris
+*.vim
