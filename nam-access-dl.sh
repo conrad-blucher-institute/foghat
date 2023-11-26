@@ -141,6 +141,7 @@ do
 
             # Filter md5sums file contents to just current model cycle (files we're downloading)
             grep -P "${ymd}_${cycle}00_\d+\.grb2$" $TMP_DIR/$md5today >$TMP_DIR/md5sum.tmp
+            # TODO  Only replace $md5today file _if_ md5sum.tmp has contents (i.e., not empty)
             mv $TMP_DIR/md5sum.tmp $TMP_DIR/$md5today
 
             # TODO  Check md5sums?
@@ -149,6 +150,7 @@ do
 
             # Make correctly-named tar file out of data files we just downloaded.  Make tarball in that directory (local disk)
             file_count=$(ls -1 $TMP_DIR | wc --lines)
+            # TODO  Do NOT generate tar file if no useful files are present in the directory.  E.g., only (empty) md5sum.* and file_list.txt files
             echo "?Tar'ring $file_count files into $tarfile" >>$LOG_FILE
             tar_fqpn="$TMP_DIR/$tarfile" # where we're making the tarfile
             tar --exclude='*.tar' -cf $tar_fqpn --directory=$TMP_DIR '.'
