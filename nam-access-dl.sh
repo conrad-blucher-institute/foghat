@@ -191,5 +191,22 @@ done
 rm -r $TMP_DIR
 rm $TMP_INDEX
 
+# Send email w/ notification download completed
+if [[ -n "$FOGHAT_NOTIFY_EMAIL" ]]
+then
+    echo "?Sending notification email to $FOGHAT_NOTIFY_EMAIL" >>$LOG_FILE
+    mailx -s "NAM-NMM, NAM-ANL via Access download on $HOSTNAME" $FOGHAT_NOTIFY_EMAIL <<EOL
+Attention meatbag,
+
+Download on $HOSTNAME, started on $now, for data between $1 ($year1,$doy1) to $2 ($year2,$doy2) has finished.
+
+Logfile is located at $LOG_FILE
+
+HAND
+
+
+EOL
+fi
+
 now=`date`
 echo "?Finished downloading NAM NMM/ANL data from $1 ($year1,$doy1) to $2 ($year2,$doy2) on $now"  >>$LOG_FILE
