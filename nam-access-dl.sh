@@ -140,23 +140,36 @@ do
             /usr/bin/wget -nv --load-cookies $FOGHAT_COOKIES --save-cookies $FOGHAT_COOKIES $FOGHAT_WGET_OPTIONS --timestamping --append-output=$LOG_FILE --directory-prefix=$TMP_DIR --base="$url" --input-file=$file_list
 
             # Filter md5sums file contents to just current model cycle (files we're downloading)
-            grep -P "${ymd}_${cycle}00_\d+\.grb2$" $TMP_DIR/$md5today >$TMP_DIR/md5sum.tmp
-            # TODO  Only replace $md5today file _if_ md5sum.tmp has contents (i.e., not empty)
-            mv $TMP_DIR/md5sum.tmp $TMP_DIR/$md5today
+            [[ -s "$TMP_DIR/$md5today" ]] && grep -P "${ymd}_${cycle}00_\d+\.grb2$" $TMP_DIR/$md5today >$TMP_DIR/md5sum.tmp
+            # Only replace $md5today file _if_ md5sum.tmp has contents (i.e., not empty)
+            if [[ -s "$TMP_DIR/md5sum.tmp" ]]
+            then
+                mv $TMP_DIR/md5sum.tmp $TMP_DIR/$md5today
+            else
+                # If the temporary md5sum file is empty (or doesn't exist), something has gone way wrong w/ the download.   Even if the md5sum.* file exists, it does not contain anything relevant for this model cycle.
+                echo "?File $md5today doesn't exist or has no matches for this model cycle ($target, $ymd, $cycle), skipping" >>$LOG_FILE
+                # Clean up any md5sum.* files we created
+                rm $TMP_DIR/$md5today $TMP_DIR/md5sum.tmp 2>/dev/null
+            fi
 
             # TODO  Check md5sums?
             # If following md5sum command returns 0 (success), everything is OK
             #md5sum --quiet -c "$TMP_DIR/$md5today" && echo "?md5sums checked out" >>$LOG_FILE
 
             # Make correctly-named tar file out of data files we just downloaded.  Make tarball in that directory (local disk)
-            file_count=$(ls -1 $TMP_DIR | wc --lines)
-            # TODO  Do NOT generate tar file if no useful files are present in the directory.  E.g., only (empty) md5sum.* and file_list.txt files
-            echo "?Tar'ring $file_count files into $tarfile" >>$LOG_FILE
+            file_count=$(ls -1 $TMP_DIR | grep -vP '^(?:file_list\.txt)$' | wc --lines)
             tar_fqpn="$TMP_DIR/$tarfile" # where we're making the tarfile
-            tar --exclude='*.tar' -cf $tar_fqpn --directory=$TMP_DIR '.'
+            # Do NOT generate tar file if no useful files are present in the directory.  E.g., only (empty) md5sum.* and file_list.txt files
+            if (( file_count > 0 ))
+            then
+                echo "?Tar'ring $file_count grib files into $tarfile" >>$LOG_FILE
+                tar --exclude='*.tar' -cf $tar_fqpn --directory=$TMP_DIR '.'
+            else
+                echo "?No grib files downloaded for ($target, $ymd, $cycle), will not generate tar file" >>$LOG_FILE
+            fi
 
             # Move tarball to correct archive directory
-            mv $tar_fqpn $dest_fqpn
+            [[ -s "$tar_fqpn" ]] && mv $tar_fqpn $dest_fqpn
 
             # Delete contents of temporary path (but not the path itself)
             rm $TMP_DIR/*
@@ -177,3 +190,6 @@ done
 # Clean up temporary directory and file(s)
 rm -r $TMP_DIR
 rm $TMP_INDEX
+
+now=`date`
+echo "?Finished downloading NAM NMM/ANL data from $1 ($year1,$doy1) to $2 ($year2,$doy2) on $now"  >>$LOG_FILE
