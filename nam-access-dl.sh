@@ -62,8 +62,8 @@ doy1=$((10#$doy1))
 doy2=$((10#$doy2))
 
 # Sanity checks
-[[ $year1 > $year2 ]] && echo "?ensure starting date ($year1$doy1) is before end date ($year2$doy2)" 1>&2 && usage
-[[ $year1 == $year2 && $doy1 > $doy2 ]] && echo  "?ensure starting date ($year1$doy1) is before end date ($year2$doy2)" 1>&2 && usage
+(( year1 > year2 )) && echo "?ensure starting date ($year1$doy1) is before end date ($year2$doy2)" 1>&2 && usage
+(( year2 == year2 && doy1 > doy2 )) && echo  "?ensure starting date ($year1$doy1) is before end date ($year2$doy2)" 1>&2 && usage
 
 now=`date`
 echo "?downloading NAM NMM/ANL data from $1 ($year1,$doy1) to $2 ($year2,$doy2) on $now"  >>$LOG_FILE
