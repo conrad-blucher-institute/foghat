@@ -2,7 +2,7 @@
 export FOGHAT_BASE=$HOME/fog-data
 export FOGHAT_LOG_DIR=$FOGHAT_BASE/logs
 export FOGHAT_ARCHIVE_DIR=$FOGHAT_BASE/archive
-export FOGHAT_COOKIES=$FOGHAT_BASE/.cookies
+export FOGHAT_COOKIES=$HOME/.cookies
 
 # Additional options for all wget invocations
 # I use this for network bandwidth utilization / server "niceness" and hopefully to not get IP/server banned by NOAA
