@@ -157,9 +157,9 @@ do
             #md5sum --quiet -c "$TMP_DIR/$md5today" && echo "?md5sums checked out" >>$LOG_FILE
 
             # Make correctly-named tar file out of data files we just downloaded.  Make tarball in that directory (local disk)
-            file_count=$(ls -1 $TMP_DIR | grep -vP '^(?:file_list\.txt)$' | wc --lines)
+            file_count=$(ls -1 $TMP_DIR | grep -vP '^(?:file_list\.txt|md5sum\.\d+)$' | wc --lines)
             tar_fqpn="$TMP_DIR/$tarfile" # where we're making the tarfile
-            # Do NOT generate tar file if no useful files are present in the directory.  E.g., only (empty) md5sum.* and file_list.txt files
+            # Do NOT generate tar file if no useful files are present in the directory.  E.g., only md5sum.* and file_list.txt files
             if (( file_count > 0 ))
             then
                 echo "?Tar'ring $file_count grib files into $tarfile" >>$LOG_FILE
