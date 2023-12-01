@@ -163,7 +163,7 @@ do
             if (( file_count > 0 ))
             then
                 echo "?Tar'ring $file_count grib files into $tarfile" >>$LOG_FILE
-                tar --exclude='*.tar' -cf $tar_fqpn --directory=$TMP_DIR '.'
+                tar --exclude='*.tar' -cf $tar_fqpn --directory=$TMP_DIR '.'  2>&1 >>$LOG_FILE
             else
                 echo "?No grib files downloaded for ($target, $ymd, $cycle), will not generate tar file" >>$LOG_FILE
             fi
