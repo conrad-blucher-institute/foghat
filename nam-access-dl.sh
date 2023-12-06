@@ -77,6 +77,8 @@ d=$doy1
 TMP_DIR=$(mktemp -d --suffix=.${NOW}-nam_access)
 # Temporary [file] index.html of NAM remote folder (per day)
 TMP_INDEX=$(mktemp --suffix=.${NOW}-nam-index_html)
+# Temporary file to hold list of all NAM .tar files successfully created/archived this run
+ARC_LIST=$(mktemp --suffix=.${NOW}-nam-archive_list)
 
 # Loop conditionals in arithmetic context
 #
@@ -169,7 +171,7 @@ do
             fi
 
             # Move tarball to correct archive directory
-            [[ -s "$tar_fqpn" ]] && mv $tar_fqpn $dest_fqpn
+            [[ -s "$tar_fqpn" ]] && mv $tar_fqpn $dest_fqpn && echo $dest_fqpn >>$ARC_LIST
 
             # Delete contents of temporary path (but not the path itself)
             rm $TMP_DIR/*
@@ -187,9 +189,12 @@ do
     count=$((count + 1 ))
 done
 
+# All the files we've archived this run
+ARC_LIST_STR=$(cat $ARC_LIST)
+
 # Clean up temporary directory and file(s)
 rm -r $TMP_DIR
-rm $TMP_INDEX
+rm $TMP_INDEX $ARC_LIST
 
 # Send email w/ notification download completed
 if [[ -n "$FOGHAT_NOTIFY_EMAIL" ]]
@@ -204,6 +209,11 @@ Logfile is located at $LOG_FILE
 
 HAND
 
+--  8<  --  8<  --  8<  --
+
+NAM files downloaded and archived:
+----------------------------------
+$ARC_LIST_STR
 
 EOL
 fi
