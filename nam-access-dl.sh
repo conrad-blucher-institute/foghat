@@ -66,7 +66,7 @@ doy2=$((10#$doy2))
 (( year2 == year2 && doy1 > doy2 )) && echo  "?ensure starting date ($year1$doy1) is before end date ($year2$doy2)" 1>&2 && usage
 
 now=`date`
-echo "?downloading NAM NMM/ANL data from $1 ($year1,$doy1) to $2 ($year2,$doy2) on $now"  >>$LOG_FILE
+echo "?downloading NAM NMM/ANL data from $1 ($year1,$doy1) to $2 ($year2,$doy2) at $now on $HOSTNAME"  >>$LOG_FILE
 
 # Loop over all days we're interested in
 count=0
@@ -219,4 +219,4 @@ EOL
 fi
 
 now=`date`
-echo "?Finished downloading NAM NMM/ANL data from $1 ($year1,$doy1) to $2 ($year2,$doy2) on $now"  >>$LOG_FILE
+echo "?Finished downloading NAM NMM/ANL data from $1 ($year1,$doy1) to $2 ($year2,$doy2) at $now on $HOSTNAME"  >>$LOG_FILE
