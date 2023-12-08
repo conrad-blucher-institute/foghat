@@ -161,17 +161,19 @@ do
             # Make correctly-named tar file out of data files we just downloaded.  Make tarball in that directory (local disk)
             file_count=$(ls -1 $TMP_DIR | grep -vP '^(?:file_list\.txt|md5sum\.\d+)$' | wc --lines)
             tar_fqpn="$TMP_DIR/$tarfile" # where we're making the tarfile
+            size=-1                     # .tar size in bytes
             # Do NOT generate tar file if no useful files are present in the directory.  E.g., only md5sum.* and file_list.txt files
             if (( file_count > 0 ))
             then
                 echo "?Tar'ring $file_count grib files into $tarfile" >>$LOG_FILE
                 tar --exclude='*.tar' -cf $tar_fqpn --directory=$TMP_DIR '.'  2>&1 >>$LOG_FILE
+                size=$(stat -c '%s' $tar_fqpn)
             else
                 echo "?No grib files downloaded for ($target, $ymd, $cycle), will not generate tar file" >>$LOG_FILE
             fi
 
             # Move tarball to correct archive directory
-            [[ -s "$tar_fqpn" ]] && mv $tar_fqpn $dest_fqpn && echo $dest_fqpn >>$ARC_LIST
+            [[ -s "$tar_fqpn" ]] && mv $tar_fqpn $dest_fqpn && echo -e "$dest_fqpn\t$size" >>$ARC_LIST
 
             # Delete contents of temporary path (but not the path itself)
             rm $TMP_DIR/*
