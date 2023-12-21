@@ -12,7 +12,7 @@ No matter where you're running this code, you'll need to configure/customize the
 Copy the sample environment variable file in `etc/` and modify as necessary for the specific host you're running these scripts on:
 
 ```
-cp etc/sample-environment.sh  etc/foghat_config.sh
+cp etc/sample-environment-hpc.sh  etc/foghat_config.sh
 vi etc/foghat_config.sh
 ```
 
