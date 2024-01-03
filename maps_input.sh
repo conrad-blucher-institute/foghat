@@ -102,7 +102,7 @@ process_day_cycle() {
     # Extract forecast hours 0-36 from (day, model cycle) grib tarfile
     # XXX  CLI testing made it seem I have to be _really_ specific w/ my file glob otherwise it matches unwanted files?!
     local EXPECTED_COUNT=37
-    local grib_files=`tar xvf "$tarfile" --directory=$TMP_DIR --wildcards nam_218_$year${md}_${mc}00_0{[012][0-9],3[0-6]}.grb2`
+    local grib_files=`tar xvf "$tarfile" --directory=$TMP_DIR --wildcards *nam_218_$year${md}_${mc}00_0{[012][0-9],3[0-6]}.grb2`
 
     # Process NAM grib files
     local count=0
