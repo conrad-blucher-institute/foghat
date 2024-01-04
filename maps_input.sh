@@ -108,8 +108,10 @@ process_day_cycle() {
     local count=0
     for fn in $grib_files
     do
+        # Strip any preceeding path information ("./") from filename string
+        clean_fn=$(basename $fn)
         # Check for errors/unavailable files ?
-        process_grib_file $fn
+        process_grib_file $clean_fn
         count=$((count + 1))
     done
 
