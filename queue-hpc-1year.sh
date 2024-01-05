@@ -11,6 +11,10 @@ function getjobid() {
     echo "$jobid"
 }
 
+# Ensure [default] jobs stdout/stderr folder exists
+# See SBATCH --output command(s) in .sbatch files
+mkdir -p /work/TANN/$USER/jobs
+
 # Simple sanity check on input
 year=$1
 if [[ $year -lt 2009 || $year -gt 2030 ]]
